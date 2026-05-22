@@ -1,0 +1,91 @@
+[
+  {
+    "name": "absent handoff is ignored",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": { "exists": false },
+    "expected": { "status": "absent", "authority": "ignore", "inject": false }
+  },
+  {
+    "name": "fresh matching handoff is authoritative",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "exists": true,
+      "updatedAt": "2026-05-04T09:45:00-07:00",
+      "threadId": "continuity",
+      "currentThreadId": "continuity",
+      "sessionId": "s1",
+      "currentSessionId": "s1",
+      "hasSourceHandles": true
+    },
+    "expected": { "status": "fresh", "authority": "authoritative", "inject": true }
+  },
+  {
+    "name": "fresh runtime claim without source handles requires verification",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "exists": true,
+      "updatedAt": "2026-05-04T09:50:00-07:00",
+      "threadId": "continuity",
+      "currentThreadId": "continuity",
+      "hasRuntimeClaims": true,
+      "hasSourceHandles": false
+    },
+    "expected": { "status": "fresh", "authority": "supporting", "inject": true, "requiresVerification": true }
+  },
+  {
+    "name": "stale same-thread handoff is non-authoritative",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "exists": true,
+      "updatedAt": "2026-05-03T08:00:00-07:00",
+      "threadId": "continuity",
+      "currentThreadId": "continuity"
+    },
+    "expected": { "status": "stale", "authority": "non_authoritative", "inject": false, "requiresVerification": true }
+  },
+  {
+    "name": "cross-thread handoff is orphaned/non-authoritative",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "exists": true,
+      "updatedAt": "2026-05-04T09:55:00-07:00",
+      "threadId": "instagram",
+      "currentThreadId": "continuity"
+    },
+    "expected": { "status": "orphaned", "authority": "non_authoritative", "inject": false }
+  },
+  {
+    "name": "stale previous-session handoff requires suspect handling and verification",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "exists": true,
+      "updatedAt": "2026-05-03T08:00:00-07:00",
+      "threadId": "continuity",
+      "currentThreadId": "continuity",
+      "sessionId": "previous-session",
+      "currentSessionId": "current-session",
+      "hasRuntimeClaims": true,
+      "hasSourceHandles": false
+    },
+    "expected": { "status": "stale", "authority": "non_authoritative", "inject": false, "requiresVerification": true }
+  },
+  {
+    "name": "consumed handoff is ignored",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "exists": true,
+      "updatedAt": "2026-05-04T09:55:00-07:00",
+      "consumedAt": "2026-05-04T09:59:00-07:00"
+    },
+    "expected": { "status": "consumed", "authority": "ignore", "inject": false }
+  },
+  {
+    "name": "unparseable timestamp is quarantined as orphaned",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "exists": true,
+      "updatedAt": "not-a-date"
+    },
+    "expected": { "status": "orphaned", "authority": "non_authoritative", "inject": false }
+  }
+]

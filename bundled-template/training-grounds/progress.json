@@ -1,0 +1,11 @@
+{
+  "currentWeek": 1,
+  "currentDay": 1,
+  "lessonsCompleted": [],
+  "startedAt": null,
+  "lastSessionAt": null,
+  "userContext": {
+    "interests": [],
+    "skillLevel": "beginner"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "cotwClawProjectDir": null,
+  "runtimeRoot": null,
+  "seedOnStart": true,
+  "seedFixtures": [
+    "agi-inquiry-loop.json",
+    "build-6-candidate-research-diagnostics.json",
+    "build-7-synthesis-card.json",
+    "latent-mode-activation-hypothesis.json",
+    "prd-007-creative-research-graph.json",
+    "runtime-consumer-contracts.json"
+  ],
+  "shadow": {
+    "enabled": true,
+    "limit": 3
+  },
+  "canary": {
+    "enabled": true,
+    "limit": 3,
+    "budgetChars": 1300,
+    "maxPacketChars": 2400,
+    "requireReceipt": true,
+    "renderMode": "fusion"
+  }
+}

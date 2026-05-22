@@ -1,0 +1,17 @@
+{
+  "id": "crystallization",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Trait Crystallization",
+  "description": "Converts long-standing growth vectors into permanent character traits through three-gate conjunction: time + principle alignment + human review.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean" },
+      "gates": { "type": "object" },
+      "traits": { "type": "object" }
+    }
+  }
+}

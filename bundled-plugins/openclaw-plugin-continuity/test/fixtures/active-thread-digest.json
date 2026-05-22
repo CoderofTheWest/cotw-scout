@@ -1,0 +1,92 @@
+[
+  {
+    "name": "creates valid digest with source handles",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "threadId": "continuity-spine",
+      "agentId": "trail-guide",
+      "goal": "implement continuity spine",
+      "currentState": "Build 1 candidate primitives are underway",
+      "decisions": ["candidate-only before runtime port"],
+      "blockers": [],
+      "lastVerifiedEvidence": [{ "handle": "commit:4e56234", "text": "Authority Ladder candidate pushed" }],
+      "staleRiskNotes": [],
+      "nextAction": "add active thread digest schema/storage",
+      "sourceHandles": ["commit:4e56234"],
+      "lastUpdated": "2026-05-04T09:55:00-07:00"
+    },
+    "expected": { "valid": true, "freshness": "fresh", "requiresVerification": false }
+  },
+  {
+    "name": "nine day old digest is stale and verify-required",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "threadId": "continuity-spine",
+      "agentId": "trail-guide",
+      "goal": "implement continuity spine",
+      "currentState": "handoff health check is next",
+      "decisions": [],
+      "blockers": [],
+      "lastVerifiedEvidence": [{ "handle": "archive:2026-04-25#e12", "text": "last known next action" }],
+      "staleRiskNotes": ["last updated 9 days ago; verify before current-state assertions"],
+      "nextAction": "add handoff health check",
+      "sourceHandles": ["archive:2026-04-25#e12"],
+      "lastUpdated": "2026-04-25T10:00:00-07:00"
+    },
+    "expected": { "valid": true, "freshness": "stale", "requiresVerification": true, "injectionIncludes": "verify before asserting current state" }
+  },
+  {
+    "name": "selects current continuity digest over parallel instagram thread",
+    "now": "2026-05-04T10:00:00-07:00",
+    "select": true,
+    "query": "Update the scaffolding plan.",
+    "currentThreadId": "continuity-spine",
+    "digests": [
+      {
+        "threadId": "continuity-spine",
+        "agentId": "trail-guide",
+        "goal": "continuity architecture scaffolding",
+        "currentState": "Authority Ladder, handoff health, active digest",
+        "decisions": [],
+        "blockers": [],
+        "lastVerifiedEvidence": [{ "handle": "commit:4e56234" }],
+        "staleRiskNotes": [],
+        "nextAction": "update continuity scaffolding plan",
+        "sourceHandles": ["commit:4e56234"],
+        "lastUpdated": "2026-05-04T09:55:00-07:00"
+      },
+      {
+        "threadId": "instagram-engine",
+        "agentId": "trail-guide",
+        "goal": "Instagram content engine scaffolding",
+        "currentState": "posting schedule and content engine",
+        "decisions": [],
+        "blockers": [],
+        "lastVerifiedEvidence": [{ "handle": "archive:2026-05-01#e9" }],
+        "staleRiskNotes": [],
+        "nextAction": "update posting schedule",
+        "sourceHandles": ["archive:2026-05-01#e9"],
+        "lastUpdated": "2026-05-01T10:00:00-07:00"
+      }
+    ],
+    "expected": { "selectedThreadId": "continuity-spine" }
+  },
+  {
+    "name": "missing source handles forces verification policy",
+    "now": "2026-05-04T10:00:00-07:00",
+    "input": {
+      "threadId": "legacy-thread",
+      "agentId": "trail-guide",
+      "goal": "legacy imported project",
+      "currentState": "summary-only state",
+      "decisions": [],
+      "blockers": [],
+      "lastVerifiedEvidence": [],
+      "staleRiskNotes": ["legacy digest has no source handles"],
+      "nextAction": "verify source before acting",
+      "sourceHandles": [],
+      "lastUpdated": "2026-05-04T09:55:00-07:00"
+    },
+    "expected": { "valid": true, "freshness": "fresh", "requiresVerification": true }
+  }
+]

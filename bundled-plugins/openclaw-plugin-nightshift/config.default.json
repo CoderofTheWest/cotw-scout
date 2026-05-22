@@ -1,0 +1,59 @@
+{
+  "enabled": true,
+  
+  "schedule": {
+    "defaultOfficeHours": {
+      "start": "23:00",
+      "end": "05:00",
+      "timezone": "America/Los_Angeles"
+    },
+    "goodNightBufferMinutes": 30,
+    "userActiveThresholdMinutes": 5
+  },
+
+  "triggers": {
+    "goodNightPhrases": [],
+    "morningPhrases": [
+      "good morning",
+      "gm ",
+      "morning"
+    ]
+  },
+  
+  "processing": {
+    "cycleIntervalMs": 60000,
+    "maxCyclesPerNight": 10,
+    "pauseOnUserActivity": true,
+    "resumeAfterMinutes": 5,
+    "idleProcessingMinutes": 15,
+    "maxIdleCyclesPerDay": 5
+  },
+  
+  "tasks": {
+    "contemplation": {
+      "enabled": true,
+      "priority": 50,
+      "maxPerNight": 3
+    },
+    "standingSynthesis": {
+      "enabled": true,
+      "priority": 40,
+      "maxPerNight": 2
+    },
+    "crystallization": {
+      "enabled": true,
+      "priority": 25,
+      "maxPerNight": 2
+    },
+    "metabolismBatch": {
+      "enabled": true,
+      "priority": 10,
+      "maxPerNight": 5
+    }
+  },
+  
+  "state": {
+    "persistPath": "state.json",
+    "logPath": "nightshift.log"
+  }
+}

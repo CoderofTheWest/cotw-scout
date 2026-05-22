@@ -1,0 +1,28 @@
+{
+  "name": "openclaw-plugin-embodiment",
+  "version": "0.1.0",
+  "description": "TonyPi Pro embodiment plugin for OpenClaw. Gives agents a physical body with sensors, vision, and intentional action.",
+  "main": "index.js",
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "embodiment",
+    "robotics",
+    "tonypi",
+    "physical-body"
+  ],
+  "author": "Chris Hunt & Clint",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "openclaw": {
+    "extensions": ["./index.js"]
+  },
+  "files": [
+    "index.js",
+    "openclaw.plugin.json",
+    "config.default.json",
+    "data/"
+  ]
+}

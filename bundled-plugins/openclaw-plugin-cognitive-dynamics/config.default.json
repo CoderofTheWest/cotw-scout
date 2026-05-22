@@ -1,0 +1,6 @@
+{
+  "enabled": true,
+  "surpriseThreshold": 2.0,
+  "logLatentVectors": false,
+  "agentFilter": ""
+}

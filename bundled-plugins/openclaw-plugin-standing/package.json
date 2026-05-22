@@ -1,0 +1,7 @@
+{
+  "name": "openclaw-plugin-standing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standing evaluation — Courage, Word, Brand tracking",
+  "main": "index.js"
+}

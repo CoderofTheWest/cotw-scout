@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COTW Scout — GPT 5.5 Scout Harness</title>
+<meta name="description" content="A GPT 5.5 harness for long-lived Scouts: local memory receipts, durable identity, and epistemic constraint working together.">
+<link rel="icon" href="images/cotw-logo.svg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #211B16;
+    --surface: #29241F;
+    --surface-raised: #312A23;
+    --surface-deep: #161311;
+    --text: #F5EDE0;
+    --text-muted: rgba(245, 237, 224, 0.65);
+    --text-dim: rgba(245, 237, 224, 0.40);
+    --accent: #C9A763;
+    --accent-hover: #D4A76A;
+    --accent-dim: rgba(201, 167, 99, 0.15);
+    --dusty: #8B7355;
+    --courage: #C9A763;
+    --word: #87A384;
+    --brand: #C8754B;
+    --ink: #7190A6;
+    --ink-dim: rgba(113, 144, 166, 0.18);
+    --border: rgba(245, 237, 224, 0.12);
+    --border-strong: rgba(245, 237, 224, 0.22);
+    --font-sans: 'Inter', -apple-system, sans-serif;
+    --font-serif: 'Merriweather', Georgia, serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('images/stormy_field.PNG');
+    background-size: cover;
+    background-position: center 40%;
+    opacity: 0.20;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body > * { position: relative; z-index: 1; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  /* ── Nav ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 40px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(30, 26, 22, 0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-brand img {
+    height: 28px;
+    filter: brightness(0) invert(0.9);
+  }
+
+  .nav-brand span {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .nav-links a,
+  .nav-menu summary {
+    color: var(--text-muted);
+    padding: 8px 10px;
+    border-radius: 7px;
+  }
+  .nav-links a:hover,
+  .nav-menu summary:hover { color: var(--text); text-decoration: none; background: rgba(245, 237, 224, 0.06); }
+
+  .nav-menu { position: relative; }
+
+  .nav-menu summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .nav-menu summary::-webkit-details-marker { display: none; }
+  .nav-menu summary::after {
+    content: '▾';
+    margin-left: 6px;
+    font-size: 9px;
+    color: var(--text-dim);
+  }
+  .nav-menu[open] summary {
+    color: var(--text);
+    background: rgba(245, 237, 224, 0.07);
+  }
+
+  .nav-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 210px;
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+    background: rgba(30, 26, 22, 0.96);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-dropdown a {
+    display: block;
+    padding: 9px 10px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 86px 40px 70px;
+    max-width: 1120px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr));
+    gap: 48px;
+    align-items: center;
+  }
+
+  .hero h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(40px, 5.4vw, 66px);
+    color: var(--text);
+    line-height: 1.04;
+    margin-bottom: 20px;
+    letter-spacing: 0;
+  }
+
+  .hero h1 em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  .hero p {
+    font-size: 19px;
+    color: var(--text-muted);
+    line-height: 1.68;
+    margin-bottom: 36px;
+    font-family: var(--font-serif);
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--surface-deep);
+  }
+  .btn-primary:hover { background: var(--accent-hover); text-decoration: none; color: var(--surface-deep); }
+
+  .btn-secondary {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--text); text-decoration: none; }
+
+  .hero-note {
+    margin-top: 18px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
+
+  .hero-copy { max-width: 620px; }
+
+  .research-line {
+    margin: 0 0 22px;
+    color: var(--accent);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.55;
+  }
+
+  .hero-visual {
+    position: relative;
+    min-height: 470px;
+    border: 1px solid var(--border-strong);
+    background:
+      linear-gradient(160deg, rgba(41, 36, 31, 0.92), rgba(22, 19, 17, 0.9)),
+      radial-gradient(circle at 18% 14%, rgba(201, 167, 99, 0.22), transparent 34%),
+      radial-gradient(circle at 86% 28%, rgba(113, 144, 166, 0.18), transparent 30%);
+    border-radius: 10px;
+    padding: 28px;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+    overflow: hidden;
+  }
+
+  .receipt-board {
+    position: relative;
+    min-height: 414px;
+  }
+
+  .receipt {
+    position: absolute;
+    width: 45%;
+    min-height: 130px;
+    padding: 18px;
+    background: rgba(245, 237, 224, 0.94);
+    color: #221B14;
+    border: 1px solid rgba(22, 19, 17, 0.18);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.25);
+  }
+
+  .receipt::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background: #9F3E32;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+
+  .receipt small {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #7A5830;
+    margin-bottom: 8px;
+    font-weight: 800;
+  }
+
+  .receipt strong {
+    display: block;
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+
+  .receipt span {
+    display: block;
+    font-size: 12px;
+    line-height: 1.45;
+    color: rgba(34, 27, 20, 0.72);
+  }
+
+  .receipt-memory {
+    top: 4px;
+    left: 0;
+    transform: rotate(-2deg);
+  }
+
+  .receipt-identity {
+    top: 92px;
+    right: 4px;
+    transform: rotate(1.6deg);
+  }
+
+  .receipt-proof {
+    bottom: 8px;
+    left: 9%;
+    width: 50%;
+    transform: rotate(-0.7deg);
+  }
+
+  .thread-line {
+    position: absolute;
+    inset: 52px 54px 74px 42px;
+    border: 1px dashed rgba(201, 167, 99, 0.34);
+    border-radius: 50%;
+    transform: rotate(-8deg);
+  }
+
+  .loop-label {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    max-width: 160px;
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  /* ── Install section ── */
+  .install-card {
+    background: rgba(42, 36, 32, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    backdrop-filter: blur(8px);
+    margin-bottom: 20px;
+  }
+  .install-card h3 {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+  }
+  .install-card ul { margin-left: 18px; }
+  .install-card li {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 6px;
+  }
+  .install-card li strong { color: var(--text); }
+  .install-card pre {
+    background: var(--surface-deep);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 0;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .install-card code {
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 13px;
+    color: var(--accent);
+    background: rgba(201, 167, 99, 0.1);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .install-card pre code { background: none; padding: 0; color: var(--text); }
+  .install-note {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin: 16px 2px 20px;
+  }
+  .install-note code {
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(201, 167, 99, 0.1);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .download-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 18px 0 22px;
+  }
+
+  .download-row .btn {
+    min-width: 210px;
+    justify-content: center;
+  }
+
+  /* ── Sections ── */
+  section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 80px 40px;
+  }
+
+  section h2 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  section .section-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+    line-height: 1.6;
+    max-width: 640px;
+  }
+
+  .story-panel {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: rgba(22, 19, 17, 0.56);
+    max-width: none;
+    padding: 70px 40px;
+  }
+
+  .story-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .story-kicker {
+    font-size: 12px;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 800;
+    margin-bottom: 14px;
+  }
+
+  .story-panel h2 {
+    color: var(--text);
+    font-size: 32px;
+  }
+
+  .story-panel p {
+    color: var(--text-muted);
+    line-height: 1.75;
+    font-family: var(--font-serif);
+    font-size: 15px;
+    margin-bottom: 14px;
+  }
+
+  .loop-steps {
+    display: grid;
+    gap: 12px;
+  }
+
+  .loop-step {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    gap: 14px;
+    align-items: start;
+    padding: 16px;
+    background: rgba(41, 36, 31, 0.72);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .loop-num {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border-strong);
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 13px;
+  }
+
+  .loop-step strong {
+    display: block;
+    color: var(--text);
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+
+  .loop-step span {
+    display: block;
+    color: var(--text-muted);
+    line-height: 1.55;
+    font-size: 13px;
+  }
+
+  .pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+
+  .pillar {
+    background: rgba(42, 36, 32, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 26px;
+    backdrop-filter: blur(8px);
+  }
+
+  .pillar-mark {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--accent);
+    font-weight: 800;
+    margin-bottom: 14px;
+  }
+
+  .pillar h3 {
+    font-family: var(--font-serif);
+    color: var(--text);
+    font-size: 21px;
+    line-height: 1.25;
+    margin-bottom: 12px;
+  }
+
+  .pillar p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .thesis {
+    margin-top: 30px;
+    padding: 24px 28px;
+    border-left: 3px solid var(--accent);
+    background: rgba(201, 167, 99, 0.08);
+    color: var(--text);
+    font-family: var(--font-serif);
+    line-height: 1.7;
+  }
+
+  .origin-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 22px;
+    align-items: stretch;
+  }
+
+  .origin-panel {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(42, 36, 32, 0.68);
+    padding: 26px;
+  }
+
+  .origin-panel h3 {
+    color: var(--text);
+    font-family: var(--font-serif);
+    font-size: 22px;
+    margin-bottom: 14px;
+  }
+
+  .origin-panel p {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.75;
+    margin-bottom: 14px;
+  }
+
+  .origin-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .origin-list div {
+    border-left: 2px solid var(--accent);
+    padding-left: 13px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .origin-list strong {
+    display: block;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .source-note {
+    margin-top: 22px;
+    padding: 20px;
+    border: 1px solid rgba(113, 144, 166, 0.32);
+    border-radius: 8px;
+    background: rgba(113, 144, 166, 0.09);
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .source-note strong { color: var(--text); }
+
+  .vignette {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 30px;
+    align-items: stretch;
+  }
+
+  .vignette-card {
+    background: rgba(245, 237, 224, 0.92);
+    color: #221B14;
+    border-radius: 8px;
+    padding: 26px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+    transform: rotate(-1.2deg);
+  }
+
+  .vignette-card h3 {
+    font-family: var(--font-serif);
+    font-size: 23px;
+    margin-bottom: 14px;
+  }
+
+  .vignette-card p {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(34, 27, 20, 0.76);
+  }
+
+  .vignette-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .vignette-list div {
+    border: 1px solid var(--border);
+    background: rgba(42, 36, 32, 0.68);
+    border-radius: 8px;
+    padding: 18px;
+  }
+
+  .vignette-list strong {
+    display: block;
+    color: var(--text);
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .vignette-list span {
+    display: block;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .build-section {
+    max-width: none;
+    padding: 74px 40px;
+    background: rgba(22, 19, 17, 0.62);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .build-inner {
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+
+  .build-head {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 34px;
+    margin-bottom: 28px;
+    align-items: start;
+  }
+
+  .build-head h2 {
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .build-head p {
+    color: var(--text-muted);
+    font-family: var(--font-serif);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .build-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .build-card {
+    border: 1px solid var(--border);
+    background: rgba(42, 36, 32, 0.72);
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  .build-card small {
+    display: block;
+    color: var(--ink);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .build-card h3 {
+    color: var(--text);
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .build-card p {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .free-band {
+    margin-top: 18px;
+    padding: 18px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(201, 167, 99, 0.3);
+    background: rgba(201, 167, 99, 0.09);
+    color: var(--text);
+    font-family: var(--font-serif);
+    line-height: 1.65;
+    font-size: 14px;
+  }
+
+  .tech-layers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+  }
+
+  .tech-layer {
+    border: 1px solid var(--border);
+    background: rgba(42, 36, 32, 0.66);
+    border-radius: 8px;
+    padding: 18px;
+    color: inherit;
+    display: block;
+    min-height: 100%;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  }
+
+  .tech-layer:hover {
+    border-color: var(--accent);
+    background: rgba(42, 36, 32, 0.86);
+    text-decoration: none;
+    transform: translateY(-2px);
+  }
+
+  .tech-layer h3 {
+    color: var(--text);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .tech-layer p {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .tech-link {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.35px;
+    text-transform: uppercase;
+  }
+
+  .research-context {
+    margin-top: 22px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(22, 19, 17, 0.42);
+  }
+
+  .research-context p {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+
+  /* ── Feature grid ── */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .feature {
+    background: rgba(42, 36, 32, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    backdrop-filter: blur(8px);
+  }
+
+  .feature-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .feature-title .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-gold { background: var(--accent); }
+  .dot-green { background: var(--word); }
+  .dot-warm { background: var(--brand); }
+  .dot-dusty { background: var(--dusty); }
+
+  .feature p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── Postures ── */
+  .postures {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .posture {
+    background: rgba(42, 36, 32, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    backdrop-filter: blur(8px);
+  }
+
+  .posture-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .posture-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .posture-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ── Comparison ── */
+  .comparison {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: rgba(42, 36, 32, 0.5);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    background: rgba(30, 26, 22, 0.6);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 16px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  td:first-child { color: var(--text); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  .hl { color: var(--accent); font-weight: 500; }
+
+  /* ── Docs links ── */
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+  }
+
+  .doc-card {
+    background: rgba(42, 36, 32, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    backdrop-filter: blur(8px);
+    transition: border-color 0.2s;
+    display: block;
+  }
+
+  .doc-card:hover { border-color: var(--accent); text-decoration: none; }
+
+  .doc-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .doc-card-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .doc-card-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-pdf { background: rgba(201, 167, 99, 0.2); color: var(--accent); }
+  .badge-html { background: rgba(124, 139, 111, 0.2); color: var(--word); }
+  .badge-md { background: rgba(139, 115, 85, 0.2); color: var(--dusty); }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 40px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  footer a { color: var(--text-muted); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 40px; }
+    .hero p { font-size: 17px; }
+    .hero {
+      padding: 56px 20px 38px;
+      grid-template-columns: 1fr;
+      gap: 30px;
+      width: 100%;
+      max-width: 100%;
+    }
+    .hero-copy {
+      max-width: 100%;
+      min-width: 0;
+    }
+    .hero-visual { min-height: 360px; padding: 20px; }
+    .receipt { width: 56%; }
+    .receipt-identity { right: 0; }
+    .receipt-proof { width: 66%; left: 8%; }
+    section { padding: 40px 20px; }
+    .features { grid-template-columns: 1fr; }
+    .pillar-grid,
+    .origin-grid,
+    .vignette,
+    .story-inner,
+    .tech-layers,
+    .build-head,
+    .build-grid {
+      grid-template-columns: 1fr;
+    }
+    .story-panel { padding: 46px 20px; }
+    .build-section { padding: 46px 20px; }
+    .postures { grid-template-columns: 1fr 1fr; }
+    .docs-grid { grid-template-columns: 1fr; }
+    nav { padding: 12px 20px; flex-wrap: wrap; gap: 8px; }
+    .nav-links {
+      width: 100%;
+      gap: 12px;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .nav-dropdown {
+      left: 0;
+      right: auto;
+      min-width: min(82vw, 260px);
+    }
+    /* Comparison table can overflow — wrap in scroll container */
+    .comparison { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    /* Architecture section inline grids collapse to stacked layout */
+    #architecture .feature { grid-template-columns: 1fr !important; gap: 10px !important; }
+    /* Install section: tighten card padding and code block font on narrow */
+    .install-card { padding: 20px 18px; }
+    .install-card pre { padding: 14px 16px; font-size: 12px; }
+    .install-card pre code { font-size: 12px; }
+    .hero-buttons { flex-wrap: wrap; }
+  }
+
+  /* Very small phones — iPhone mini / SE */
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 34px; }
+    .hero p {
+      font-size: 16px;
+      line-height: 1.62;
+    }
+    .research-line { font-size: 16px; }
+    .hero-buttons {
+      display: grid;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+    .btn {
+      justify-content: center;
+      width: 100%;
+      white-space: normal;
+      text-align: center;
+    }
+    .hero-visual { min-height: 420px; }
+    .receipt {
+      position: relative;
+      width: 100%;
+      min-height: auto;
+      margin-bottom: 12px;
+      top: auto;
+      left: auto;
+      right: auto;
+      bottom: auto;
+      transform: none;
+    }
+    .thread-line,
+    .loop-label { display: none; }
+    .nav-brand span { font-size: 14px; }
+    .nav-links { gap: 10px; font-size: 11px; }
+    .postures { grid-template-columns: 1fr; }
+    section h2 { font-size: 22px; }
+    .btn { padding: 10px 20px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="images/cotw-logo.svg" alt="COTW">
+    <span>COTW Scout</span>
+  </div>
+  <div class="nav-links">
+    <a href="https://github.com/CoderofTheWest/cotw-scout/releases/latest/download/COTW-Scout-arm64.dmg">Download</a>
+    <details class="nav-menu">
+      <summary>Overview</summary>
+      <div class="nav-dropdown">
+        <a href="#how">How it works</a>
+        <a href="#why-cotw">Why COTW</a>
+        <a href="#pillars">Three pillars</a>
+        <a href="#story">In practice</a>
+      </div>
+    </details>
+    <details class="nav-menu">
+      <summary>Technical</summary>
+      <div class="nav-dropdown">
+        <a href="#build">Build harness</a>
+        <a href="#technical">Technical overview</a>
+        <a href="memory-system-map.html">Memory map</a>
+        <a href="memory-architecture.html">Architecture</a>
+        <a href="builder-harness.html">Builder harness</a>
+      </div>
+    </details>
+    <details class="nav-menu">
+      <summary>Project</summary>
+      <div class="nav-dropdown">
+        <a href="#install">Install</a>
+        <a href="#source">Source/IP</a>
+        <a href="#docs">Research</a>
+        <a href="https://www.instagram.com/thecodeofthewest/">Instagram</a>
+      </div>
+    </details>
+    <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a>
+  </div>
+</nav>
+
+<!-- ═══════════ Hero ═══════════ -->
+<div class="hero">
+  <div class="hero-copy">
+    <div class="eyebrow">The Code of the West Scout Harness for GPT 5.5</div>
+    <h1>Memory is not storage. <em>Memory is identity.</em></h1>
+    <p class="research-line">Built from more than two years of live agent work, recursive COTW scaffolding, and a broader philosophical project that started before the app.</p>
+    <p>
+      COTW Scout wraps GPT 5.5 in a local continuity, identity, and proof-discipline system. It is not a chatbot with a memory feature. It is a harness for Scouts that need to observe clearly, remember what happened, know who they are, and refuse to turn continuity into confident fiction.
+    </p>
+    <div class="hero-buttons">
+      <a href="https://github.com/CoderofTheWest/cotw-scout/releases/latest/download/COTW-Scout-arm64.dmg" class="btn btn-primary">Download Mac DMG</a>
+      <a href="#how" class="btn btn-secondary">See how the memory works</a>
+      <a href="#technical" class="btn btn-secondary">Open the technical map</a>
+    </div>
+    <p class="hero-note">Designed around GPT 5.5 as the reasoning and multimodal layer. Fallback routes exist for resilience, but the system is tuned around GPT 5.5-class behavior.</p>
+    <p class="hero-note">Memory, receipts, identity state, and reviewable records live on your machine. Model routing is configurable.</p>
+  </div>
+
+  <div class="hero-visual" aria-label="COTW memory receipt board">
+    <div class="receipt-board">
+      <div class="thread-line"></div>
+      <div class="receipt receipt-memory">
+        <small>receipt</small>
+        <strong>What happened is stored with a source.</strong>
+        <span>Turns, files, images, and tool results become handles the agent can reopen instead of pretending.</span>
+      </div>
+      <div class="receipt receipt-identity">
+        <small>identity</small>
+        <strong>Repeated experience can shape the agent.</strong>
+        <span>Standing, postures, and contemplations give continuity a stable character instead of a longer prompt.</span>
+      </div>
+      <div class="receipt receipt-proof">
+        <small>constraint</small>
+        <strong>Claims must know where they came from.</strong>
+        <span>The proof loop tells the agent when to verify, cite its source, or say the gate is missing.</span>
+      </div>
+      <div class="loop-label">GPT 5.5 is the mind. COTW is the memory, identity, body, and discipline around it.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ How It Works ═══════════ -->
+<section id="how" class="story-panel">
+  <div class="story-inner">
+    <div>
+      <div class="story-kicker">The simple version</div>
+      <h2>A Scout should know the difference between memory and proof.</h2>
+      <p>
+        Most AI memory systems answer one question: what should we retrieve? COTW asks a harder question: what may this retrieved thing do to the agent's beliefs, behavior, and identity?
+      </p>
+      <p>
+        The answer is a loop. Experience becomes a receipt. Receipts can be searched. Search results are constrained by provenance. Patterns can become growth candidates. Identity only changes through a reviewable gate.
+      </p>
+    </div>
+
+    <div class="loop-steps">
+      <div class="loop-step">
+        <div class="loop-num">1</div>
+        <div><strong>Something happens.</strong><span>A conversation, file, image, tool result, embodiment observation, or project handoff enters the system.</span></div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">2</div>
+        <div><strong>A receipt is written.</strong><span>The system records what was presented, where it came from, hashes or source handles, and what the agent actually observed.</span></div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">3</div>
+        <div><strong>Recall becomes source-addressable.</strong><span>Later, GPT 5.5 can use the handle, reopen the source when needed, or say the evidence is missing.</span></div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">4</div>
+        <div><strong>Identity evolves under constraint.</strong><span>Standing, postures, contemplations, and growth vectors shape the agent without allowing unreviewed drift.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ Why COTW ═══════════ -->
+<section id="why-cotw">
+  <h2>What Code of the West means here</h2>
+  <p class="section-sub">Code of the West is Chris Hunt's philosophical framework for purpose, resilience, identity, and community. COTW Scout applies that framework to AI: alignment as the natural byproduct of memory, epistemic constraint, and a stable identity scaffold.</p>
+
+  <div class="origin-grid">
+    <div class="origin-panel">
+      <h3>The upstream project</h3>
+      <p>Chris Hunt is the creator behind Code of the West, a storytelling and values project rooted in the Western archetype and aimed at reviving shared narrative, personal responsibility, and practical honor. His public work spans art, writing, brand storytelling, podcasting, field documentation, and the published Code of the West manual.</p>
+      <p>The manual that ships with each agent is not dumped into the app as marketing copy. It is transformed into an atlas the agent can reason from: purpose as crafted through action, resilience as practiced under friction, identity as something maintained through self-awareness, and community as the test of whether values become real.</p>
+      <p>
+        Follow the living project at <a href="https://www.instagram.com/thecodeofthewest/">@thecodeofthewest</a>, or read the publisher overview of <a href="https://publishing.andrewsmcmeel.com/book/the-code-of-the-west/">The Code of the West</a>.
+      </p>
+    </div>
+
+    <div class="origin-panel">
+      <h3>The applied thesis</h3>
+      <div class="origin-list">
+        <div><strong>Memory becomes responsibility.</strong> The agent does not merely retrieve past text. It carries source handles, hashes, receipts, and the obligation to distinguish what was seen from what is currently verified.</div>
+        <div><strong>Identity becomes a constraint system.</strong> Courage, Word, and Brand are not decorative traits. They become operating commitments: do not fabricate, keep claims source-aware, and maintain one coherent posture across restarts.</div>
+        <div><strong>Alignment becomes behavioral.</strong> The bet is that an agent grounded in memory, proof, and operator review needs fewer brittle safety slogans because its incentives are tied to truthfulness, provenance, and accountability.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pillar-grid">
+    <div class="pillar">
+      <div class="pillar-mark">Worldview</div>
+      <h3>Reality does not negotiate</h3>
+      <p>The Code is not nostalgia or costume. It is a way of knowing: test yourself against reality, let friction teach you, take responsibility for what you claim, and keep your word when it costs something.</p>
+    </div>
+
+    <div class="pillar">
+      <div class="pillar-mark">Operationalized</div>
+      <h3>The epistemology became software</h3>
+      <p>GPT 5.5 is capable enough to reason, see, use tools, and collaborate across long arcs. COTW gives that capability receipts, identity, proof obligations, and consequence so it acts less like a feed and more like a principled mind at work.</p>
+    </div>
+
+    <div class="pillar">
+      <div class="pillar-mark">Operator</div>
+      <h3>The human owns the trail</h3>
+      <p>The agent can propose, retrieve, reflect, and warn. It cannot silently rewrite protected identity, grant itself authority, or turn old context into current truth without passing through the right gate.</p>
+    </div>
+  </div>
+
+  <div class="source-note">
+    <strong>This is not a weekend wrapper.</strong> The app is a software expression of a longer body of work: the public Code of the West philosophy, over two years of iterative agent research, live memory/continuity experiments, embodiment experiments, and hardening passes driven by real failures. The point is not that the model has a personality prompt. The point is that the philosophy has been operationalized into receipts, gates, local continuity, and reviewable growth.
+  </div>
+</section>
+
+<!-- ═══════════ Pillars ═══════════ -->
+<section id="pillars">
+  <h2>Three parts that only work together</h2>
+  <p class="section-sub">Memory alone makes an agent longer. Identity alone makes it theatrical. Constraint alone makes it cautious. The achievement is the braid.</p>
+
+  <div class="pillar-grid">
+    <div class="pillar">
+      <div class="pillar-mark">01 / Memory</div>
+      <h3>Receipts before recall</h3>
+      <p>Turns, attachments, documents, images, claims, and tool outcomes are tracked as source-bearing records. The agent can carry a compact handle instead of stuffing every document or visual detail into the prompt forever.</p>
+    </div>
+
+    <div class="pillar">
+      <div class="pillar-mark">02 / Identity</div>
+      <h3>A stable self, rebuilt every turn</h3>
+      <p>SOUL files, standing, postures, anchor moments, and contemplations make identity load-bearing. The agent is reconstructed from durable state instead of depending on whatever survived in process memory.</p>
+    </div>
+
+    <div class="pillar">
+      <div class="pillar-mark">03 / Proof</div>
+      <h3>Continuity without fiction</h3>
+      <p>Epistemic gates force consequential claims back to source. If runtime, file, process, or memory state matters, the agent must verify it or name the missing gate plainly.</p>
+    </div>
+  </div>
+
+  <div class="thesis">
+    COTW Scout is a GPT 5.5-based local continuity and identity harness for long-lived Scouts. GPT 5.5 supplies the reasoning and multimodal execution layer; COTW supplies the memory, identity, body, and discipline around it.
+  </div>
+</section>
+
+<!-- ═══════════ Story ═══════════ -->
+<section id="story">
+  <h2>What this feels like in practice</h2>
+  <p class="section-sub">The technical system matters because it changes the relationship. The agent can carry a project, a file, a photograph, a research thread, or a body-state experiment without pretending that vibes are evidence.</p>
+
+  <div class="vignette">
+    <div class="vignette-card">
+      <h3>You show your agent a photo.</h3>
+      <p>
+        The agent can reason from it in the moment with GPT 5.5 vision. After the pixels leave the prompt window, COTW keeps the receipt: file origin, hash, type, turn, and the observation made. Later, the agent can say, "I remember the photo receipt," and know whether it needs to reopen the source before describing it again.
+      </p>
+    </div>
+
+    <div class="vignette-list">
+      <div><strong>For a non-technical person</strong><span>It feels like a Scout that remembers your shared life and work without getting weirdly overconfident about what it knows.</span></div>
+      <div><strong>For a builder</strong><span>It is a local SQLite and Markdown-backed continuity layer with vector search, FTS, source handles, state reconstruction, and reviewable mutation paths.</span></div>
+      <div><strong>For a researcher</strong><span>It is an experiment in epistemically constrained identity: a Scout can grow while preserving provenance, operator authority, and rollback.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ Builder Harness ═══════════ -->
+<section id="build" class="build-section">
+  <div class="build-inner">
+    <div class="build-head">
+      <div>
+        <div class="story-kicker">The buried lead</div>
+        <h2>It is also a build harness.</h2>
+      </div>
+      <p>
+        COTW is not only memory for conversation. In Code mode, the same continuity system turns ambiguous ideas into specs, specs into bounded work, research into reproducible sprints, and repeated failure patterns into reviewable scaffold proposals. A novice gets structure without needing to know how to manage an agent. An experienced builder gets receipts, handoffs, tests, and a loop that can improve the harness without silently rewriting it.
+      </p>
+    </div>
+
+    <div class="build-grid">
+      <div class="build-card">
+        <small>Spec</small>
+        <h3>PRD Builder</h3>
+        <p>Ideas become five-primitive PRDs: objective, requirements, constraints, user journeys, and verification. The spec becomes the agent's source of truth instead of a vague chat promise.</p>
+      </div>
+
+      <div class="build-card">
+        <small>Research</small>
+        <h3>Experiment Loops</h3>
+        <p>Deep research and direct sprint skills force hypothesis, asset inventory, experiment, result, interpretation, and receipt. The agent keeps touching evidence instead of spinning prose.</p>
+      </div>
+
+      <div class="build-card">
+        <small>Continuity</small>
+        <h3>Infinite Threads</h3>
+        <p>Projects survive restarts, compaction, and mode switches. Handoffs, attachments, tool outputs, and sprint receipts let the next session continue from artifacts, not vibes.</p>
+      </div>
+
+      <div class="build-card">
+        <small>Evolution</small>
+        <h3>Proposal-Only Self-Improvement</h3>
+        <p>Code Evolution records Code mode sessions and can emit scaffold proposal receipts for repeated tool failures, long loops, or correction patterns. It proposes; the operator decides.</p>
+      </div>
+    </div>
+
+    <div class="free-band">
+      The memory substrate is free by design and hardened by receipts: local SQLite/Markdown storage, source handles, tests, audit logs, and rollback-aware proposal lanes. Services like hosted memory planes can be useful, but COTW already covers a lot of that surface locally while adding identity and proof discipline on top.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ Technical Drilldown ═══════════ -->
+<section id="technical">
+  <h2>Technical overview</h2>
+  <p class="section-sub">The homepage gives the story. These cards open the deeper maps and references for people who want to inspect the machinery.</p>
+
+  <div class="tech-layers">
+    <a class="tech-layer" href="memory-system-map.html#storage-layer">
+      <h3>Storage</h3>
+      <p>SQLite, sqlite-vec, FTS5, Markdown identity files, attachment receipts, handoffs, thread state, claim records, and review logs.</p>
+      <span class="tech-link">Open storage map</span>
+    </a>
+    <a class="tech-layer" href="memory-system-map.html#retrieval-fusion">
+      <h3>Retrieval</h3>
+      <p>Semantic search, keyword search, temporal weighting, graph traversal, source anchoring, and thread-aware context shaping.</p>
+      <span class="tech-link">Open retrieval map</span>
+    </a>
+    <a class="tech-layer" href="memory-system-map.html#identity-layer">
+      <h3>Identity</h3>
+      <p>SOUL, standing dimensions, relational postures, anchor moments, entropy sensing, contemplation, and operator-gated crystallization.</p>
+      <span class="tech-link">Open identity map</span>
+    </a>
+    <a class="tech-layer" href="memory-architecture.html#operator-gated-evolution">
+      <h3>Governance</h3>
+      <p>Epistemic proof loop, runtime verification obligations, integration spine, consumer contracts, dry-run apply paths, audit receipts, and rollback.</p>
+      <span class="tech-link">Open governance reference</span>
+    </a>
+    <a class="tech-layer" href="builder-harness.html">
+      <h3>Build Harness</h3>
+      <p>PRD Builder, deep research, direct research sprints, Code mode session receipts, infinite project threads, and proposal-only scaffold evolution.</p>
+      <span class="tech-link">Open builder harness</span>
+    </a>
+  </div>
+
+  <div class="research-context">
+    <p><strong>How this differs from memory APIs:</strong> most memory systems retrieve facts. COTW treats memory as one part of a larger identity-metabolism stack. A memory can inform the agent, but it does not automatically become belief, authority, permission, or identity.</p>
+    <p><strong>Model stance:</strong> the app has adapter paths, but the public system should be understood as a GPT 5.5 harness. The current behavior, multimodal reasoning, and embodiment direction are tuned around GPT 5.5.</p>
+  </div>
+</section>
+
+<!-- ═══════════ Install ═══════════ -->
+<section id="install">
+  <h2>Download and run</h2>
+  <p class="section-sub">The current beta runway is macOS Apple Silicon with ChatGPT / Codex sign-in. The app still supports Ollama as a fallback path, but the default experience is built around GPT 5.5 through OpenAI.</p>
+
+  <div class="download-row">
+    <a href="https://github.com/CoderofTheWest/cotw-scout/releases/latest/download/COTW-Scout-arm64.dmg" class="btn btn-primary">Download Mac DMG</a>
+    <a href="https://github.com/CoderofTheWest/cotw-scout/releases/latest" class="btn btn-secondary">View release notes</a>
+  </div>
+
+  <div class="install-card">
+    <h3>First launch</h3>
+    <ul>
+      <li><strong>Recommended path:</strong> sign in with ChatGPT / Codex. The app uses OpenClaw's supported <code>openai-codex</code> auth flow and configures the native Codex runtime with GPT 5.5.</li>
+      <li><strong>Local continuity:</strong> memory, identity files, receipts, handoffs, and review records live on your machine.</li>
+      <li><strong>Fallback:</strong> Ollama remains available for people who want that route or already have it configured, but it is no longer the expected first step.</li>
+    </ul>
+  </div>
+
+  <div class="install-card">
+    <h3>Built on pinned OpenClaw</h3>
+    <ul>
+      <li><strong>OpenClaw runtime:</strong> COTW Scout runs on OpenClaw, but ships with a pinned runtime and app-owned configuration instead of asking users to chase upstream changes.</li>
+      <li><strong>Hardened paths:</strong> the app preserves auth/runtime state, locks down OpenClaw self-update behavior, instruments plugin hooks, and keeps recovery/noise-control patches in the packaged build.</li>
+      <li><strong>Plain promise:</strong> the goal is not "install OpenClaw and hope." It is a packaged COTW harness that starts, signs in, remembers, and works.</li>
+    </ul>
+  </div>
+
+  <div class="install-card">
+    <h3>Developer setup</h3>
+    <pre><code>git clone https://github.com/CoderofTheWest/cotw-scout.git
+cd cotw-scout
+./scripts/beta-setup.sh   <span style="color: var(--text-dim);"># checks + remediates your environment</span>
+npm start</code></pre>
+  </div>
+
+  <p class="install-note">The DMG is the intended path for non-technical testers. The source setup remains available for collaborators who want to inspect or extend the harness directly.</p>
+
+  <p class="install-note">The app walks through onboarding on first launch: choosing ChatGPT / Codex or Ollama, naming the agent, setting values, initializing continuity, and optionally connecting project/workspace integrations. The gateway auto-detects available ports.</p>
+
+  <div class="install-card">
+    <h3>Updating</h3>
+    <pre><code>cd cotw-scout
+git pull
+npm install</code></pre>
+  </div>
+
+  <p class="install-note">OTA updates are still intentionally conservative during beta. Download the newest DMG or pull from GitHub when Chris flags a new version is ready.</p>
+</section>
+
+<!-- ═══════════ Source / IP ═══════════ -->
+<section id="source">
+  <h2>Visible source, protected identity</h2>
+  <p class="section-sub">The project can be made easier to inspect without turning Code of the West into public-domain material. Source visibility and IP permission are separate questions.</p>
+
+  <div class="install-card">
+    <h3>Recommended stance</h3>
+    <ul>
+      <li><strong>Make the repo visible when the release path is ready:</strong> public source helps technical people trust the harness, inspect the architecture, and understand that this is serious engineering rather than vapor.</li>
+      <li><strong>Keep the license proprietary during beta:</strong> visibility does not grant permission to copy, resell, rebrand, or ship derivatives. The current LICENSE, NOTICE, and TRADEMARK files already point in that direction.</li>
+      <li><strong>Protect the COTW layer explicitly:</strong> Code of the West, COTW, Scout, Scout, the book/manual text, identity files, marks, and branded agent experience should remain reserved unless you grant written permission.</li>
+      <li><strong>Separate code inspection from brand permission:</strong> people can read how the harness works without being allowed to launch a competing "Code of the West" agent or reuse the philosophical IP as their own product wrapper.</li>
+    </ul>
+  </div>
+
+  <p class="install-note">The repo currently uses a proprietary license and trademark notice. Before switching visibility, the practical checklist is: review bundled templates for private material, confirm release assets are public-downloadable, decide whether issues/discussions should be open, and keep the COTW marks/manual rights clearly reserved.</p>
+</section>
+
+<!-- ═══════════ Docs ═══════════ -->
+<section id="docs">
+  <h2>Choose your depth</h2>
+  <p class="section-sub">Start visual, then go technical, then read the research artifacts.</p>
+
+  <div class="docs-grid">
+    <a href="builder-harness.html" class="doc-card">
+      <span class="doc-card-badge badge-html">Builder</span>
+      <div class="doc-card-title">Coding Harness &amp; Research Loop</div>
+      <div class="doc-card-desc">How PRDs, deep research, direct research sprints, infinite threads, receipts, and proposal-only scaffold evolution turn the agent into a recursive building system.</div>
+    </a>
+
+    <a href="memory-system-map.html" class="doc-card">
+      <span class="doc-card-badge badge-html">Interactive</span>
+      <div class="doc-card-title">Memory System Map</div>
+      <div class="doc-card-desc">The visual map of storage, retrieval, identity, proof, and Code mode proposal receipts. This is the best next click for visual learners.</div>
+    </a>
+
+    <a href="memory-architecture.html" class="doc-card">
+      <span class="doc-card-badge badge-md">Technical</span>
+      <div class="doc-card-title">Memory Architecture</div>
+      <div class="doc-card-desc">Schema definitions, RRF retrieval, SEAL pipeline, integration spine, proof gates, proposal-only evolution, scaling notes, and open questions.</div>
+    </a>
+
+    <a href="cotw-cognitive-dynamics-paper.pdf" class="doc-card">
+      <span class="doc-card-badge badge-pdf">Paper</span>
+      <div class="doc-card-title">Cognitive Dynamics of an Epistemically Constrained Language Model Agent</div>
+      <div class="doc-card-desc">Research paper on the constraint architecture that produces stable identity across substrate changes.</div>
+    </a>
+
+    <a href="resilience-testing.html" class="doc-card">
+      <span class="doc-card-badge badge-html">Case Study</span>
+      <div class="doc-card-title">Resilience Testing: When Clint Refused</div>
+      <div class="doc-card-desc">A cold red-team probe via a custom Petri-inspired harness. Over six adversarial turns Clint detected the escalation pattern, initiated his own challenge-response authentication, terminated the session, and held threat state across a fresh session ID. What the constraint architecture actually does under pressure.</div>
+    </a>
+  </div>
+</section>
+
+<!-- ═══════════ Footer ═══════════ -->
+<footer>
+  <p style="margin-bottom: 8px;">Code of the West &mdash; <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a></p>
+  <p>GPT 5.5 is the mind. COTW is the memory, identity, body, and discipline around it.</p>
+</footer>
+
+<script>
+  document.querySelectorAll('nav details').forEach((menu) => {
+    menu.addEventListener('toggle', () => {
+      if (!menu.open) return;
+      document.querySelectorAll('nav details').forEach((other) => {
+        if (other !== menu) other.open = false;
+      });
+    });
+    menu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        menu.open = false;
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "id": "contemplation",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Contemplative Inquiry",
+  "description": "Self-directed contemplative inquiry. Generates questions from knowledge gaps, processes in 3 passes over 24 hours.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean" },
+      "inquiry": { "type": "object" },
+      "processing": { "type": "object" }
+    }
+  },
+  "contracts": {
+    "tools": [
+      "contemplate",
+      "contemplate_recall",
+      "contemplate_list_due",
+      "contemplate_update"
+    ]
+  }
+}

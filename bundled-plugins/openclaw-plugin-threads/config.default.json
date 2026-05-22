@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "projectsFile": null,
+  "decisionsFile": null,
+  "contextInjection": {
+    "enabled": true,
+    "constraintWindowDays": 30
+  },
+  "pulse": {
+    "enabled": true
+  }
+}

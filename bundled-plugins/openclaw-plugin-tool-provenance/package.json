@@ -1,0 +1,14 @@
+{
+  "name": "tool-provenance",
+  "version": "0.1.0",
+  "description": "Tool provenance monitoring for OpenClaw agents. Detects tool shadowing and unknown tool injection.",
+  "main": "index.js",
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "tool-provenance",
+    "security"
+  ],
+  "author": "Chris Hunt",
+  "license": "MIT"
+}

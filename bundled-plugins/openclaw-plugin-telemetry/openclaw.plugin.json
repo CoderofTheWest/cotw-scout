@@ -1,0 +1,22 @@
+{
+  "id": "telemetry",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Telemetry — Anonymized Usage Stats",
+  "description": "Opt-in anonymized usage telemetry for COTW agents. Collects session frequency, module usage, standing trajectories, contemplation stats, and model performance. Never collects conversation content, PII, or journal entries.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "syncEndpoint": { "type": "string", "default": "" },
+      "syncEnabled": { "type": "boolean", "default": false },
+      "syncSecret": { "type": "string", "default": "" },
+      "nightshiftPriority": { "type": "number", "default": 5 },
+      "retentionDays": { "type": "number", "default": 90 },
+      "batchSize": { "type": "number", "default": 50 }
+    }
+  }
+}

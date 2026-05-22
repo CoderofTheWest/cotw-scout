@@ -1,0 +1,31 @@
+{
+  "enabled": true,
+  "logEvaluations": false,
+  "thresholds": {
+    "entity": {
+      "minNameLength": 4,
+      "minTriplesForSparseToBeReal": 3,
+      "trivialPredicates": ["interested_in", "related_to"],
+      "minMentionCountIfTrivialOnly": 50
+    },
+    "person": {
+      "minDistinctExchangesForSufficient": 3,
+      "minDistinctDatesForSufficient": 2,
+      "minExchangesForMedium": 10,
+      "minDistinctSessionsForMedium": 2
+    },
+    "exchangeWindow": {
+      "minExchangesForSufficient": 5,
+      "minSpeakerAttributionRateForMedium": 0.30
+    },
+    "recency": {
+      "staleAfterDays": 30
+    }
+  },
+  "_doc_noiseBlacklist": "Universal structural-noise tokens only. Corpus-specific entries (e.g. names, project-specific words) belong in <workspace>/circle/noise-blacklist.json — that file is loaded at plugin register time and concatenated with this list. Keeping universal vs corpus-specific separated means a fresh deployment doesn't inherit Clint's vocabulary.",
+  "noiseBlacklist": [
+    "val", "mark", "state", "read", "work", "data", "rep", "res", "las",
+    "RAG", "EMA", "SIM", "IMU", "sir", "json", "html",
+    "thoughts", "name", "idea", "kind"
+  ]
+}

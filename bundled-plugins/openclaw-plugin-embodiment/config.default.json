@@ -1,0 +1,14 @@
+{
+  "piHost": "192.168.12.179",
+  "piPort": 8420,
+  "polling": {
+    "enabled": true,
+    "intervalMs": 15000,
+    "injectBodyState": true
+  },
+  "streaming": {
+    "enabled": true,
+    "udpPort": 8424,
+    "fallbackAfterMs": 5000
+  }
+}

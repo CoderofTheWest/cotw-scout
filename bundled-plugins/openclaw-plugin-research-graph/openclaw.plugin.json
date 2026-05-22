@@ -1,0 +1,27 @@
+{
+  "id": "research-graph",
+  "activation": { "onStartup": true },
+  "name": "Research Graph Canary",
+  "version": "0.1.0",
+  "description": "Shadow + narrow canary injection for source-backed creative research graph context",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "shadow": {
+        "type": "object",
+        "properties": { "enabled": { "type": "boolean", "default": true } }
+      },
+      "canary": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean", "default": true },
+          "budgetChars": { "type": "number", "default": 1300 },
+          "limit": { "type": "number", "default": 3 },
+          "maxPacketChars": { "type": "number", "default": 2400 }
+        }
+      }
+    }
+  }
+}

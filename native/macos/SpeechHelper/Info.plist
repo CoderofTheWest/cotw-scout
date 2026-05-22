@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleIdentifier</key>
+  <string>com.codeofthewest.scout.speech-helper</string>
+  <key>CFBundleName</key>
+  <string>COTW Speech Helper</string>
+  <key>CFBundleDisplayName</key>
+  <string>COTW Speech Helper</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
+  <key>CFBundleShortVersionString</key>
+  <string>1.0</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>COTW Scout uses the microphone only while you hold push-to-talk.</string>
+  <key>NSSpeechRecognitionUsageDescription</key>
+  <string>COTW Scout uses Apple Speech Recognition to transcribe push-to-talk voice input.</string>
+</dict>
+</plist>

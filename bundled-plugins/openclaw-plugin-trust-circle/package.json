@@ -1,0 +1,8 @@
+{
+  "name": "openclaw-plugin-trust-circle",
+  "version": "0.1.0",
+  "description": "Trust circle: speaker resolution + rank-aware profile injection for OpenClaw agents.",
+  "main": "index.js",
+  "private": true,
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "trust-circle",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Trust Circle",
+  "version": "0.1.0",
+  "description": "Resolves inbound messages to known speakers (anchor/guest/visitor) and injects guest-rank profile content into the agent prompt. Foundational policy layer for the trust circle architecture; consumed by continuity (speakerId metadata) and standing/contemplation/crystallization (rank-aware metabolism in Phase 5).",
+  "main": "index.js",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "logResolutions": { "type": "boolean", "default": true,
+        "description": "Log every speaker resolution to gateway.log. Helpful during build-out; can be quieted later." },
+      "injectGuestProfiles": { "type": "boolean", "default": true,
+        "description": "Whether to inject the speaker's profile identityFile into the prompt context. False to disable Phase-6 fold-in." }
+    }
+  },
+  "contracts": {
+    "tools": [
+      "sovereign_refuse",
+      "tactical_debrief",
+      "trust_circle_register"
+    ]
+  }
+}

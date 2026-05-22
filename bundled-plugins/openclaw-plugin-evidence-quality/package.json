@@ -1,0 +1,8 @@
+{
+  "name": "openclaw-plugin-evidence-quality",
+  "version": "0.1.0",
+  "description": "Substrate-density evaluator for refuse-and-log gates before LLM synthesis.",
+  "main": "index.js",
+  "private": true,
+  "license": "UNLICENSED"
+}

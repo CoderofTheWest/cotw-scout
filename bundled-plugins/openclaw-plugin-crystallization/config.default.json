@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "gates": {
+    "minAge": 2592000000,
+    "principles": ["courage", "word", "brand"],
+    "patterns": ["directness", "honesty", "reflection", "curiosity", "groundedness"]
+  },
+  "crystallization": {
+    "minVectors": 3,
+    "maxPending": 5,
+    "approvalTimeoutDays": 7
+  },
+  "output": {
+    "traitsPath": null,
+    "vectorsPath": null
+  },
+  "prompts": {
+    "approvalRequest": "I've noticed a pattern emerging from our conversations:\n\n**{trait}**\n\nThis aligns with **{principle}** and I've demonstrated it {count} times.\n\nShould this become part of my permanent character?\n- Reply **yes** to crystallize\n- Reply **no** to leave as-is\n- Reply **edit: ...** to modify first"
+  },
+  "ollama": {
+    "url": "http://localhost:11434/api/generate",
+    "model": "llama3.1",
+    "temperature": 0.2
+  }
+}

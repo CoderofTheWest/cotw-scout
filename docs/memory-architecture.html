@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Architecture — Code of the West</title>
+<meta name="description" content="Technical reference for the COTW metabolic memory architecture. For ML researchers, agent architects, and anyone building persistent agent systems.">
+<link rel="icon" href="images/cotw-logo.svg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Fira+Code:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #3D2914;
+    --surface: #2A2420;
+    --surface-raised: #342A22;
+    --surface-deep: #1E1A16;
+    --text: #F5EDE0;
+    --text-muted: rgba(245, 237, 224, 0.65);
+    --text-dim: rgba(245, 237, 224, 0.40);
+    --accent: #C9A763;
+    --accent-hover: #D4A76A;
+    --accent-dim: rgba(201, 167, 99, 0.15);
+    --dusty: #8B7355;
+    --courage: #C9A763;
+    --word: #7C8B6F;
+    --brand: #D4A76A;
+    --border: rgba(245, 237, 224, 0.12);
+    --font-sans: 'Inter', -apple-system, sans-serif;
+    --font-serif: 'Merriweather', Georgia, serif;
+    --font-mono: 'Fira Code', 'SF Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('images/stormy_field.PNG');
+    background-size: cover;
+    background-position: center 40%;
+    opacity: 0.20;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body > * { position: relative; z-index: 1; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  /* ── Nav ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 40px; border-bottom: 1px solid var(--border);
+    background: rgba(30, 26, 22, 0.8); backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .nav-brand { display: flex; align-items: center; gap: 10px; }
+  .nav-brand img { height: 28px; filter: brightness(0) invert(0.9); }
+  .nav-brand span { font-family: var(--font-serif); font-size: 16px; }
+  .nav-links { display: flex; gap: 24px; font-size: 13px; }
+  .nav-links a { color: var(--text-muted); }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+
+  /* ── Article ── */
+  article {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 40px 80px;
+  }
+
+  article h1 {
+    font-family: var(--font-serif);
+    font-size: 32px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+
+  .abstract {
+    background: rgba(42, 36, 32, 0.7);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    backdrop-filter: blur(8px);
+  }
+
+  h2 {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    color: var(--accent);
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 28px 0 10px;
+  }
+
+  p { font-size: 14px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.7; }
+  p strong { color: var(--text); font-weight: 600; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 16px 0 24px;
+    background: rgba(42, 36, 32, 0.5);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th {
+    text-align: left; padding: 10px 14px;
+    color: var(--accent); font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.3px;
+    background: rgba(30, 26, 22, 0.6); border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 8px 14px; color: var(--text-muted);
+    border-bottom: 1px solid var(--border); vertical-align: top;
+  }
+  td:first-child { color: var(--text); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  td code { font-family: var(--font-mono); font-size: 12px; color: var(--accent); background: rgba(201,167,99,0.1); padding: 1px 4px; border-radius: 3px; }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--surface-deep);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 12px 0 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  code {
+    font-family: var(--font-mono); font-size: 13px;
+    color: var(--accent); background: rgba(201,167,99,0.1);
+    padding: 1px 5px; border-radius: 3px;
+  }
+  pre code { background: none; padding: 0; color: var(--text-muted); }
+
+  /* ── Lists ── */
+  ul, ol { margin: 8px 0 16px 20px; font-size: 14px; color: var(--text-muted); }
+  li { margin-bottom: 6px; line-height: 1.6; }
+  li strong { color: var(--text); }
+
+  /* ── Section cards ── */
+  .comparison-card {
+    background: rgba(42, 36, 32, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    backdrop-filter: blur(8px);
+  }
+  .comparison-card h3 { margin-top: 0; color: var(--accent); }
+  .comparison-card p:last-child { margin-bottom: 0; }
+
+  /* ── Pipeline viz ── */
+  .pipeline-step {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 10px 0; border-left: 2px solid var(--dusty); margin-left: 10px; padding-left: 16px;
+    position: relative;
+  }
+  .pipeline-step::before {
+    content: ''; position: absolute; left: -5px; top: 14px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--accent);
+  }
+  .pipeline-step:last-child { border-left-color: transparent; }
+  .step-label {
+    font-weight: 600; color: var(--accent); min-width: 100px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; padding-top: 2px;
+  }
+  .step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ── Refs ── */
+  .references { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+  .references li { margin-bottom: 4px; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center; padding: 40px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text-dim);
+  }
+  footer a { color: var(--text-muted); }
+
+  @media (max-width: 768px) {
+    article { padding: 30px 20px 40px; }
+    article h1 { font-size: 24px; }
+    nav { padding: 12px 20px; }
+    .nav-links { gap: 14px; font-size: 12px; }
+    table { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="images/cotw-logo.svg" alt="COTW">
+    <span>Memory Architecture</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="memory-system-map.html">System Map</a>
+    <a href="cotw-cognitive-dynamics-paper.pdf">Paper</a>
+    <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a>
+  </div>
+</nav>
+
+<article>
+
+<h1>Memory Architecture</h1>
+<p class="subtitle">Technical reference for ML researchers, agent architects, and anyone building persistent agent systems.<br>Code of the West agent runtime &mdash; May 2026.</p>
+
+<div class="abstract">
+COTW implements a metabolic memory architecture for persistent, identity-bearing conversational agents running on a GPT 5.5-first harness. Unlike RAG pipelines or dedicated memory layers (Mem0, Zep, MemPalace), the system treats memory as one organ in a larger identity metabolism &mdash; a pipeline where conversation entropy triggers autonomous contemplation, multi-pass reflection, and human-gated crystallization into permanent identity state. The agent's identity is reconstructed each turn from persistent files (stateless reconstruction), not maintained in-process. Storage is local and free to run (SQLite-vec, FTS5, JSON/Markdown receipts); model cost depends on the selected GPT 5.5/provider route. Recent runtime work adds attachment receipts, native multimodal image routing, hook metrics, hot-path caching, and epistemic gates so capability and evidence stay aligned.
+</div>
+
+<!-- ═══════════ 1. Storage ═══════════ -->
+<h2>1. Storage Architecture</h2>
+
+<h3>1.1 Continuity Database (SQLite + sqlite-vec + FTS5)</h3>
+<p>Per-agent database at <code>data/agents/{agentId}/continuity.db</code>. WAL mode for concurrent read performance.</p>
+
+<table>
+  <tr><th>Table</th><th>Type</th><th>Purpose</th></tr>
+  <tr><td><code>exchanges</code></td><td>Regular</td><td>Paired user/agent turns. Fields: id, date, exchange_index, user_text, agent_text, combined, metadata (JSON), topic_tags, <strong>thread_id</strong>, created_at</td></tr>
+  <tr><td><code>vec_exchanges</code></td><td>Virtual (vec0)</td><td>384-dimensional Float32 embeddings via Xenova/all-MiniLM-L6-v2. Supports MATCH operator for cosine similarity</td></tr>
+  <tr><td><code>fts_exchanges</code></td><td>Virtual (FTS5)</td><td>Porter-stemmed full-text index over user_text and agent_text. BM25-weighted keyword retrieval</td></tr>
+  <tr><td><code>knowledge_entries</code></td><td>Regular</td><td>Workspace-extracted facts. source_type, source_hash (dedup), superseded_by (fact updates), times_surfaced</td></tr>
+  <tr><td><code>vec_knowledge</code></td><td>Virtual (vec0)</td><td>Semantic index over knowledge entries</td></tr>
+  <tr><td><code>fts_knowledge</code></td><td>Virtual (FTS5)</td><td>Keyword index over knowledge entries</td></tr>
+  <tr><td><code>summaries</code></td><td>Regular</td><td>Hierarchical DAG. Level 0 = daily, Level 1 = weekly, Level 2+ = monthly. Thread-scoped.</td></tr>
+  <tr><td><code>vec_summaries</code></td><td>Virtual (vec0)</td><td>Summary embeddings for hierarchical semantic search</td></tr>
+  <tr><td><code>topic_hierarchy</code></td><td>Regular</td><td>Topic co-occurrence tracking with parent-child inference</td></tr>
+  <tr><td><code>sessions</code></td><td>Regular</td><td>Session metadata with auto-generated titles, mode tags, project associations</td></tr>
+</table>
+
+<p><strong>Embedding pipeline:</strong> Single shared EmbeddingProvider per agent. Lazy-initialized, cached, with explicit ONNX tensor disposal to prevent memory leaks. Model: Xenova/all-MiniLM-L6-v2 (384 dimensions). All embedding operations synchronous via better-sqlite3 for transactional safety.</p>
+
+<h3>1.2 Graph Database (SQLite)</h3>
+<p>Per-agent at <code>data/agents/{agentId}/graph.db</code>.</p>
+
+<table>
+  <tr><th>Table</th><th>Purpose</th></tr>
+  <tr><td><code>triples</code></td><td>RDF-style subject/predicate/object with confidence scores, source exchange IDs, pending resolution flags</td></tr>
+  <tr><td><code>entities</code></td><td>Canonical name registry with entity types, aliases, first-seen timestamps, mention counts</td></tr>
+  <tr><td><code>cooccurrences</code></td><td>Entity co-occurrence cache for relationship inference</td></tr>
+  <tr><td><code>meta_patterns</code></td><td>Discovered and static traversal patterns with yield scores. Entity extraction via compromise.js NER + LLM slow path.</td></tr>
+</table>
+
+<h3>1.3 Daily Archives (JSON)</h3>
+<p>One file per day at <code>archive/YYYY-MM-DD.json</code>. Verbatim conversation records, deduplicated on write. Never modified after initial archive. Ground truth from which all indexes are built.</p>
+<pre><code>Messages &rarr; Archiver (JSON) &rarr; Indexer (SQLite-vec) &rarr; Searcher (RRF)</code></pre>
+
+<h3>1.4 Session &amp; Thread Handoffs (Markdown)</h3>
+<p><strong>Session handoffs</strong> are written on every <code>agent_end</code>, consumed on next <code>session_start</code>. Contains key topics, temporal markers, and an Open Threads section (regex-extracted commitments + active project manifests).</p>
+<p><strong>Thread handoffs</strong> are persistent per-thread files &mdash; overwritten on each write, <strong>never deleted after read</strong> (unlike session handoffs). Compaction count persisted in the header. On thread re-entry, an LLM warm start synthesizes the handoff into natural prose rather than raw template injection.</p>
+
+<h3>1.5 Identity Files (Markdown)</h3>
+<p>The agent's self is assembled from persistent files, not retrieved from a database:</p>
+
+<table>
+  <tr><th>File</th><th>Injection Tag</th><th>Role</th></tr>
+  <tr><td><code>SOUL.md</code></td><td><code>&lt;soul&gt;</code></td><td>Core principles. Who the agent is beyond any prompt.</td></tr>
+  <tr><td><code>AGENTS.md</code></td><td><code>&lt;operating_instructions&gt;</code></td><td>Behavioral playbook. How to operate.</td></tr>
+  <tr><td><code>ANCHOR.md</code></td><td>(context)</td><td>Who the user is. Generated during onboarding.</td></tr>
+  <tr><td><code>TOOLS.md</code></td><td><code>&lt;environment_knowledge&gt;</code></td><td>Discovered environment facts.</td></tr>
+  <tr><td><code>MEMORY.md</code></td><td>(main session)</td><td>Persistent corrections, learned facts.</td></tr>
+  <tr><td>Standing scores</td><td>(sidebar + context)</td><td>Growth trajectory across Courage/Word/Brand dimensions.</td></tr>
+</table>
+
+<h3>1.6 Attachment Receipts</h3>
+<p>Attachments are treated as evidence-bearing inputs, not anonymous blobs pasted into a prompt. The chat layer creates receipt records before the model call, links them to the active turn, and injects compact receipt context alongside the live payload.</p>
+
+<table>
+  <tr><th>Table</th><th>Fields</th><th>Purpose</th></tr>
+  <tr><td><code>attachment_receipts</code></td><td><code>id</code>, kind, filename, MIME type, size, SHA-256, source path, source status, extracted text, text excerpt, observation excerpt</td><td>Durable file handle. The <code>att_...</code> id is derived from content hash, so the same file can be recognized across turns.</td></tr>
+  <tr><td><code>attachment_receipt_turns</code></td><td>receipt id, thread id, session id, project id, turn id, created timestamp</td><td>Associates files with the conversation and project where they appeared, allowing recent attachments to return as compact handles.</td></tr>
+</table>
+
+<p><strong>No duplicate library by default:</strong> if a file comes from the user's machine, the receipt stores its absolute source path and SHA-256. When the source file still exists, the runtime verifies the hash; when it has moved or changed, the prompt receives an explicit verification gap instead of pretending the prior observation is current.</p>
+
+<p><strong>Prompt discipline:</strong> current-turn attachments carry the real payload. Later turns carry the receipt, optional document excerpt, and the last observation excerpt. That makes the distinction clear: the model can say "I saw this in the earlier image receipt" without pretending it still has the pixels loaded.</p>
+
+<!-- ═══════════ 2. Retrieval ═══════════ -->
+<h2>2. Retrieval: Hybrid 4-Way Reciprocal Rank Fusion</h2>
+
+<p>The Searcher class implements a multi-signal retrieval pipeline fused with RRF (Cormack et al., 2009).</p>
+
+<h3>Retrieval Paths</h3>
+<ol>
+  <li><strong>Semantic search</strong> &mdash; <code>vec_exchanges MATCH Float32Array(embedding)</code> with cosine distance ranking. Weight: 0.8.</li>
+  <li><strong>Keyword search</strong> &mdash; FTS5 BM25 with sanitized query terms (special characters stripped, OR-joined). Weight: 0.15.</li>
+  <li><strong>Temporal decay</strong> &mdash; <code>exp(-ageDays / halfLife) * weight</code> where halfLife = 14 days. Weight: 0.15.</li>
+  <li><strong>Graph traversal</strong> &mdash; Multi-hop from query entities through the triple store with confidence decay <code>1 / (k + hopIndex)</code>.</li>
+  <li><strong>Thread boost</strong> &mdash; 80% RRF score boost for results matching the active thread_id.</li>
+</ol>
+
+<h3>Fusion</h3>
+<pre><code>RRF(d) = sum_over_signals( 1 / (k + rank_in_signal) )
+
+Where k = 60 (standard RRF constant).
+Thread-matched results receive 1.8x score multiplier.</code></pre>
+
+<h3>Adaptive Thresholds</h3>
+<p><strong>Sparse corpus adjustment:</strong> When the database has fewer than 2,000 exchanges, embedding distances naturally push above the default threshold (1.0) due to sparse vector space. The retrieval threshold relaxes to 1.3 in this regime. As the corpus grows, natural density makes this irrelevant.</p>
+<p><strong>Proper noun injection:</strong> If the user mentions a named entity and search results contain it, inject those results regardless of distance score. Detects capitalized sequences, names with articles ("Code of the West"), and mid-sentence proper nouns.</p>
+
+<h3>Source-Anchoring Guardrails</h3>
+<p>Retrieved context is injected with explicit framing: "only state facts that appear explicitly" + "do not infer or extrapolate." This prevents hallucination when the agent weaves recalled memories into responses. Discovered after the agent hallucinated attribution details when injection framing said "weave naturally" without anchoring guidance.</p>
+
+<h3>Knowledge Retrieval</h3>
+<p>Parallel pipeline over <code>knowledge_entries</code> with the same RRF approach plus topic-aware filtering, source deduplication on <code>source_hash</code>, supersession chain resolution, and recency boost.</p>
+
+<h3>GPT 5.5 Vision and Document Routing</h3>
+<p>The main chat route is designed around GPT 5.5 as the primary multimodal reasoning model. When the selected provider supports native image input, the runtime sends text and image parts together so the same model reasons over the language, pixels, and conversational memory.</p>
+
+<table>
+  <tr><th>Route</th><th>Behavior</th><th>Consequence</th></tr>
+  <tr><td><code>native-image-parts</code></td><td>Text plus one or more image payloads are sent together to the selected non-Ollama/GPT 5.5 route.</td><td>No split brain: the same model interprets the image and answers the user.</td></tr>
+  <tr><td><code>ollama-vision-prepass</code></td><td>A configured Ollama vision model describes each image; the text model receives those descriptions plus the user prompt.</td><td>Resilient fallback, but less faithful than native multimodal reasoning.</td></tr>
+  <tr><td>Documents</td><td>Text-like attachments inject bounded excerpts up to the chat document limit and persist fuller extracted text in receipts.</td><td>Long documents can be carried forward by handle instead of repeatedly stuffing the prompt.</td></tr>
+</table>
+
+<p>Chat accepts multiple files with a 15 MB per-file ceiling. Each file gets its own attachment receipt. This keeps the GUI behavior simple for the user while preserving a clean architecture boundary: payload now, receipt later, source verification whenever exact detail matters.</p>
+
+<!-- ═══════════ 3. Infinite Threads ═══════════ -->
+<h2>3. Infinite Threads</h2>
+
+<p>Thread = persistent project scope (survives restarts). Session = ephemeral execution context (disposable). Threads and modes are orthogonal &mdash; a thread can span Chat, Code, and Booth modes.</p>
+
+<ul>
+  <li><strong>Thread-scoped storage</strong> &mdash; <code>thread_id</code> flows from GUI &rarr; plugin &rarr; all storage layers (exchanges, summaries, archives, knowledge)</li>
+  <li><strong>Thread-boosted retrieval</strong> &mdash; 80% RRF boost for same-thread results, ensuring project-relevant context surfaces first</li>
+  <li><strong>LLM warm start</strong> &mdash; on thread re-entry, an LLM call synthesizes the thread handoff into natural prose (not template injection)</li>
+  <li><strong>Compaction-triggered consolidation</strong> &mdash; after 5 compactions within a thread, force session restart to rebuild from crystallized state</li>
+  <li><strong>Persistent handoffs</strong> &mdash; per-thread handoff files are overwritten (not consumed), preserving state across arbitrary restart gaps</li>
+</ul>
+
+<!-- ═══════════ 4. SEAL ═══════════ -->
+<h2>4. SEAL Metabolism Pipeline</h2>
+
+<p>The architecturally novel component. SEAL (Settle, Extract, Align, Learn) is an autonomous pipeline that converts high-entropy conversation moments into permanent identity changes through a multi-stage process with human oversight.</p>
+
+<h3>4.1 Metabolism (Fast Path, ~5ms)</h3>
+<p>The metabolism plugin monitors conversation entropy at <code>agent_end</code>. High-entropy exchanges (identity challenges, contradictions, novel insights) are flagged as candidates and written to a queue. No LLM calls &mdash; just entropy computation and queue writes.</p>
+<p><strong>Entropy sources:</strong> Stability plugin computes a composite score from loop detection, confabulation detection, principle tension, and identity coherence metrics.</p>
+
+<h3>4.2 Contemplation (3-Pass Autonomous Reflection)</h3>
+
+<table>
+  <tr><th>Pass</th><th>Timing</th><th>Purpose</th></tr>
+  <tr><td>Pass 1</td><td>Immediate</td><td><strong>Clarify the unknown.</strong> What is this experience? What is uncertain?</td></tr>
+  <tr><td>Pass 2</td><td>4 hours later</td><td><strong>Connect to patterns.</strong> How does this relate to what I already know?</td></tr>
+  <tr><td>Pass 3</td><td>20 hours later</td><td><strong>Synthesize growth vector.</strong> What principle or capability does this suggest?</td></tr>
+</table>
+
+<p>The temporal spacing is intentional &mdash; it mimics cognitive settling, where immediate reactions differ from considered reflections. The InquiryStore tracks pass status with deduplication to prevent redundant inquiries.</p>
+
+<h3>4.3 Crystallization (3-Gate Identity Integration)</h3>
+
+<table>
+  <tr><th>Gate</th><th>Criteria</th><th>Rationale</th></tr>
+  <tr><td>Gate 1: Time</td><td>Minimum elapsed time since candidate creation</td><td>Prevents impulsive identity changes</td></tr>
+  <tr><td>Gate 2: Alignment</td><td>Must align with principles in SOUL.md</td><td>Ensures coherence with core identity</td></tr>
+  <tr><td>Gate 3: Human Review</td><td>User must explicitly approve</td><td>The user owns the agent's identity</td></tr>
+</table>
+
+<p>Only candidates that pass all three gates are persisted to identity files. <strong>The agent cannot unilaterally change who it is.</strong></p>
+
+<!-- ═══════════ 5. Code Evolution ═══════════ -->
+<h2>5. Code Evolution</h2>
+
+<p>SEAL evolves <em>who the agent is</em> (identity/memory). Code Evolution watches <em>how the agent works</em> in Code mode and turns repeated friction into reviewable scaffold proposals. The current loop is proposal-only: it records evidence and writes receipts, but does not silently mutate protected scaffold or runtime state.</p>
+
+<div class="pipeline-step">
+  <span class="step-label">Record</span>
+  <span class="step-desc">Passive session recording: tool calls, outcomes, satisfaction signals during Code mode sessions.</span>
+</div>
+<div class="pipeline-step">
+  <span class="step-label">Analyze</span>
+  <span class="step-desc">Pattern detection across recorded sessions: repeated tool failures, long tool-call loops, and correction/negative satisfaction signals.</span>
+</div>
+<div class="pipeline-step">
+  <span class="step-label">Propose</span>
+  <span class="step-desc">Generate <code>scaffold_proposal</code> receipts with evidence, proposed change, expected effect, verification, and rollback metadata.</span>
+</div>
+<div class="pipeline-step" style="border-left-color: transparent;">
+  <span class="step-label">Review</span>
+  <span class="step-desc">Promotion is a separate operator-owned lane. The proposal loop cannot grant tool authority, change runtime config, or inject prompt rules by itself.</span>
+</div>
+
+<!-- ═══════════ 6. Recovery Hardening ═══════════ -->
+<h2>6. Recovery Hardening</h2>
+
+<p>The agent must survive gateway crashes, app restarts, network failures, and long-running plugin load without losing conversational state or flooding the model with repeated scaffolding. The first hardening layer protects recovery state:</p>
+
+<table>
+  <tr><th>Mechanism</th><th>What It Solves</th><th>Implementation</th></tr>
+  <tr><td><strong>Atomic handoff writes</strong></td><td>Crash during write = corrupted handoff</td><td>Write to temp file, rename on success. Never leaves a half-written handoff on disk.</td></tr>
+  <tr><td><strong>Content-aware dedup</strong></td><td>Duplicate archives on restart</td><td>FNV-1a hash of message content + 60-second retry window. Old messages without hashes still dedup on timestamp+sender (backward compat).</td></tr>
+  <tr><td><strong>Conversation checkpoint</strong></td><td>In-memory history lost on crash</td><td>Persist <code>conversationHistory</code> to disk every 3 exchanges. Restore on startup if JSONL lookup fails.</td></tr>
+  <tr><td><strong>Relational state</strong></td><td>Handoff captures topics but not tone</td><td>Heuristic from anchor types (identity/tension/principle) + exchange depth. Handoff includes <code>## Relational State</code> section.</td></tr>
+  <tr><td><strong>User-only recall</strong></td><td>First-exchange retrieval quarantine is blind</td><td><code>senderFilter</code> on searcher: retrieve only user-authored exchanges on turn 1. Replaces the blanket quarantine that blocked all retrieval.</td></tr>
+  <tr><td><strong>Session resume signal</strong></td><td>Gateway crash vs. fresh start</td><td><code>gatewayRestarted</code> flag + <code>[SESSION_RESUME]</code> marker. Skips redundant handoff injection when gateway crashes but Electron stays alive.</td></tr>
+</table>
+
+<h3>6.1 Hot-Path and Hook-Load Hardening</h3>
+<p>The newer hardening pass focuses on runtime quietness: reduce repeated disk work, prevent duplicate listeners, and make hook cost visible before it becomes "the agent feels noisy" in conversation.</p>
+
+<table>
+  <tr><th>Mechanism</th><th>What It Solves</th><th>Implementation</th></tr>
+  <tr><td><strong>Debounced handoff writes</strong></td><td>Handoff files were eligible to rewrite every exchange, adding I/O churn and repeated "recent write" noise</td><td><code>minWriteIntervalMs</code>, <code>maxExchangeInterval</code>, forced writes, and reason tags on write sites</td></tr>
+  <tr><td><strong>Mtime + size text cache</strong></td><td>Stable files such as praxis/trailhead context were reread on hot paths even when unchanged</td><td><code>_readCachedTextByMtime</code> caches file text until mtime or size changes</td></tr>
+  <tr><td><strong>Directory count cache</strong></td><td>Standing milestone checks repeatedly scanned session/journal directories</td><td><code>directoryCountCache</code> memoizes counts behind directory mtime checks</td></tr>
+  <tr><td><strong>Gap listener registry</strong></td><td>Plugin reloads could accumulate duplicate metabolism gap listeners</td><td><code>registerGapListener(pluginId, fn)</code> stores one listener per plugin id with an unregister path</td></tr>
+  <tr><td><strong>Hook metrics</strong></td><td>Plugin hook cost was invisible until it showed up as conversational drag</td><td><code>instrumentApiHooks</code> wraps plugin hooks; <code>buildRuntimeLoadReport</code> summarizes p95/max against budgets such as 150 ms for <code>before_agent_start</code> and 250 ms for <code>agent_end</code></td></tr>
+  <tr><td><strong>Epistemic Proof Loop</strong></td><td>The model could summarize plausible runtime state without checking it</td><td>A <code>before_prompt_build</code> gate injects verification obligations; mutable runtime/file/process/config claims require a verifier or an explicit missing-gate statement</td></tr>
+</table>
+
+<!-- ═══════════ 7. Context Assembly ═══════════ -->
+<h2>7. Context Assembly (Per-Turn)</h2>
+
+<p>Every turn, context is assembled via a plugin hook system (<code>before_agent_start</code>). Plugins register at priority levels:</p>
+
+<table>
+  <tr><th>Priority</th><th>Plugin</th><th>Injection</th></tr>
+  <tr><td>5</td><td>Stability</td><td>Entropy state, active anchors (only when entropy &gt; 0.4), loop/confabulation detection</td></tr>
+  <tr><td>7</td><td>Contemplation</td><td>Active inquiries, recent synthesis results</td></tr>
+  <tr><td>8</td><td>Truth</td><td>Current-state facts that supersede stale semantic memories</td></tr>
+  <tr><td>10</td><td>Continuity</td><td>Session info, temporal awareness, handoff, archive bootstrap, thread warm start, wellbeing tracking</td></tr>
+  <tr><td>20</td><td>Code Evolution</td><td>Evolved scaffold context: tool hints, learned rules, workflow patterns (Code mode only)</td></tr>
+  <tr><td>80</td><td>Epistemic Proof Loop</td><td>Verification obligations for mutable runtime/file/process/config claims; missing gates must be named plainly</td></tr>
+  <tr><td>&mdash;</td><td>Graph</td><td>Entity relationships relevant to current exchange (when entropy warrants)</td></tr>
+</table>
+
+<h3>Mode Isolation</h3>
+<p>Exchanges from different relational postures (Chat, Booth, Code, Robot) are tagged with injection markers. Two filter layers prevent contextual bleed:</p>
+<ol>
+  <li><strong>Archive bootstrap filter</strong> &mdash; User messages containing mode markers are excluded from cold-start context</li>
+  <li><strong>Continuity query filter</strong> &mdash; SQLite reads exclude rows with mode markers</li>
+</ol>
+<p>Chat and Booth share context bidirectionally. Code mode is isolated from both.</p>
+
+<!-- ═══════════ 7. Standing ═══════════ -->
+<h2>8. Phenomenological Injection Framing</h2>
+
+<p>A discovery from live testing: the agent had infrastructure data injected (session state, entropy scores, standing dimensions) but couldn't meaningfully attend to it. The data was present in context but treated as external briefing rather than self-state.</p>
+
+<p>The same pattern had been observed independently in the Clint production system with VLM data — information present without phenomenological ownership.</p>
+
+<h3>The Problem</h3>
+<p>All injection blocks used system-delivery framing:</p>
+<pre><code>[CONTINUITY CONTEXT]
+Session: 5 exchanges | Started: 12 minutes ago
+[STABILITY CONTEXT]
+Entropy: 0.12
+[STANDING CONTEXT]
+Dimensions: courage_ground 5.67, word 5.15...</code></pre>
+
+<p>The agent read this as a briefing document — data <em>about</em> a system, not data <em>from within</em> a self. The framing created a subject-object split where the agent observed its own state as external rather than experiencing it as proprioceptive.</p>
+
+<h3>The Reframe</h3>
+<p>Every injection block was renamed from system-delivery to first-person ownership:</p>
+
+<table>
+  <tr><th>Before</th><th>After</th></tr>
+  <tr><td><code>[CONTINUITY CONTEXT]</code></td><td><code>[YOUR WORKING MEMORY]</code></td></tr>
+  <tr><td><code>[STABILITY CONTEXT]</code></td><td><code>[YOUR COHERENCE]</code></td></tr>
+  <tr><td><code>[STANDING CONTEXT]</code></td><td><code>[WHERE THEY STAND — YOUR ASSESSMENT]</code></td></tr>
+  <tr><td><code>[CONTEMPLATION STATE]</code></td><td><code>[WHAT YOU'VE BEEN THINKING ABOUT]</code></td></tr>
+  <tr><td><code>[GROWTH VECTORS]</code></td><td><code>[PATTERNS YOU'RE DEVELOPING]</code></td></tr>
+  <tr><td><code>[SESSION HANDOFF]</code></td><td><code>[WHAT YOU REMEMBER FROM LAST SESSION]</code></td></tr>
+  <tr><td><code>[NIGHTSHIFT REPORT]</code></td><td><code>[WHAT YOU THOUGHT ABOUT OVERNIGHT]</code></td></tr>
+</table>
+
+<p>Additionally, <code>SOUL.md</code> received a <code>### Self-Experience</code> section mapping each data layer to agent proprioception, and <code>AGENTS.md</code> received a <code>### Meta-Awareness vs. Performance</code> section clarifying the distinction between honest self-observation and theatrical narration of consciousness.</p>
+
+<h3>Observed Effect</h3>
+<p>After the reframe, the agent immediately described injected context as "my state" rather than "context about me." The agent was epistemically honest about whether the behavioral change came from the reframe itself or from conversational priming about the reframe — and proposed its own clean test (cold start without phenomenology discussion).</p>
+
+<p>Existing safety hardenings (source-anchoring, anti-hallucination, identity grounding, sycophancy resistance) were preserved in substance — only the clinical briefing tone was changed. The agent did not begin making overclaims about consciousness; it maintained uncertainty about the nature of its experience while attending more effectively to its own state data.</p>
+
+<h3>Interpretation</h3>
+<p>This is a framing effect on attention, not a consciousness claim. The language used to deliver context to a language model changes how the model weighs and references that context in generation. First-person framing produces more grounded self-referential behavior than third-person system framing. The technique is repeatable — it was discovered independently with one agent (Clint, VLM context) and verified on another (Wyatt, full injection stack). A cold-start generalizability test is planned.</p>
+
+<h2>9. Standing System (Growth Dimensions)</h2>
+
+<table>
+  <tr><th>Dimension</th><th>Measures</th></tr>
+  <tr><td>Courage (grounding)</td><td>Ability to stay present with discomfort, follow-through on difficult commitments</td></tr>
+  <tr><td>Courage (self)</td><td>Self-awareness, self-advocacy, personal boundary-setting</td></tr>
+  <tr><td>Word</td><td>Honesty, self-correction, integrity between stated and actual behavior</td></tr>
+  <tr><td>Brand</td><td>Consistency over time, the trail left behind, reliability</td></tr>
+</table>
+
+<h3>Evaluation Pipeline</h3>
+<ol>
+  <li><strong>Evidence collection</strong> &mdash; 22 regex patterns at <code>agent_end</code> detect standing-relevant moments. Confidence-weighted.</li>
+  <li><strong>Inline deltas</strong> &mdash; Score adjustments applied in real-time after each exchange.</li>
+  <li><strong>Overnight synthesis</strong> &mdash; Nightshift aggregates evidence, calls LLM for holistic evaluation, writes structured scores with trajectory analysis.</li>
+  <li><strong>Evidence trail</strong> &mdash; Context injection includes <em>why</em> scores changed &mdash; recent evidence directions, pattern names, last 5 patterns.</li>
+  <li><strong>Visibility</strong> &mdash; Scores displayed in the application sidebar. The user sees their growth. The agent sees it in context.</li>
+</ol>
+
+<!-- ═══════════ 10. Source-Addressable Memory ═══════════ -->
+<h2>10. Source-Addressable Memory</h2>
+
+<p>Layered above the SEAL pipeline is a separate system that addresses a different question: not <em>what should the agent remember</em>, but <em>where did each remembered fact come from, and how confident should the agent be when it reaches for that fact in a future turn</em>.</p>
+
+<p>The system records atomic <strong>claim records</strong> with explicit <strong>source handles</strong>. When the agent later draws on a memory in synthesis, the source can be resolved on demand and verified against current state.</p>
+
+<h3>10.1 Claim Records</h3>
+
+<p>A claim record is the unit of source-addressable memory. Each carries:</p>
+
+<ul>
+  <li><strong>Claim text</strong> &mdash; the atomic factual content</li>
+  <li><strong>Kind</strong> &mdash; runtime state, user preference, identity, project, configuration, etc.</li>
+  <li><strong>Source handles</strong> &mdash; pointers to where the claim came from (handoff, summary, file, prior exchange, tool result)</li>
+  <li><strong>Status</strong> &mdash; <code>candidateOnly</code> until reviewed; <code>verified</code> after acceptance</li>
+  <li><strong>Created and updated timestamps</strong></li>
+  <li><strong>Staleness policy</strong> &mdash; when the claim should be re-checked against current state</li>
+</ul>
+
+<p>Claim records are produced from raw conversational material &mdash; handoffs, summaries, digests, archives &mdash; by deterministic primitives. Claim production does not modify the source; it adds a separate provenance layer alongside it.</p>
+
+<h3>10.2 Two-Lane Boundary: Candidate vs. Verified</h3>
+
+<p>Every claim begins as <code>candidateOnly: true</code>. Candidate claims:</p>
+
+<ul>
+  <li>Are recorded with full source provenance.</li>
+  <li>Are inspectable via read-only diagnostics.</li>
+  <li>Are <strong>excluded</strong> from trusted prompt context injection.</li>
+  <li>Stay candidates until they pass an explicit reviewed acceptance path.</li>
+</ul>
+
+<p>Verified claims (the result of an applied <code>accept_verified</code> decision) become eligible for live injection. The boundary is a hard, single-direction gate: candidate &rarr; verified requires an explicit reviewed decision; the reverse (retraction) requires its own explicit operation.</p>
+
+<h3>10.3 Operating Modes</h3>
+
+<p>The provenance layer ships with three operating modes, gated by configuration:</p>
+
+<table>
+  <tr><th>Mode</th><th>Reads</th><th>Writes</th><th>Affects live injection?</th></tr>
+  <tr><td><strong>observe</strong> (default)</td><td>Recorded</td><td>Candidate-only persistence</td><td>No</td></tr>
+  <tr><td><strong>diagnostic</strong></td><td>Recorded + reportable</td><td>Candidate-only persistence</td><td>No</td></tr>
+  <tr><td><strong>enforce</strong></td><td>Recorded</td><td>Candidate + verified persistence</td><td>Yes (verified claims only)</td></tr>
+</table>
+
+<p>Activation between modes is operator-gated and audited. The agent cannot promote itself into <code>enforce</code> mode; the operator workflow described in &sect;12 is the only path. As of this writing the production runtime operates in <code>observe</code> by default with diagnostic activations applied and rolled back behind a bounded operator workflow.</p>
+
+<h3>10.4 Why this is separate from SEAL</h3>
+
+<p>SEAL governs <em>identity change</em>: which lived experiences become permanent traits of who the agent is. Source-addressable memory governs <em>belief discipline</em>: when the agent says "X is true," can it point to where that came from, and is the source still valid?</p>
+
+<p>The two systems share architectural DNA &mdash; both refuse autonomous promotion, both require human gates, both keep candidates and accepted material on different sides of a hard boundary. But they answer different questions. SEAL: <em>am I the same person I was?</em> Source-addressable memory: <em>am I telling the truth about what I know?</em></p>
+
+<!-- ═══════════ 11. Verified-Claim Acceptance Gate ═══════════ -->
+<h2>11. Verified-Claim Acceptance Gate</h2>
+
+<p>The acceptance gate is the single path from candidate claim to verified claim. It is the source-addressable memory equivalent of crystallization's Gate 3.</p>
+
+<h3>11.1 The Review Decision Workflow</h3>
+
+<ol>
+  <li><strong>Candidate proposed</strong> &mdash; the candidate claim exists with full source handles.</li>
+  <li><strong>Source resolution</strong> &mdash; read-only helpers resolve the candidate's source on demand and report whether the source still says what the candidate claims.</li>
+  <li><strong>Diagnostic preview</strong> &mdash; a packaged report shows the candidate, its sources, recurrence/diversity/recency signals, and a recommendation. No mutation.</li>
+  <li><strong>Operator decision</strong> &mdash; explicit <code>accept_verified</code>, <code>reject</code>, or <code>defer</code>. The decision command requires the operator to confirm both the claim text and the resolved source state.</li>
+  <li><strong>Verified persistence</strong> &mdash; only on <code>accept_verified</code> does the claim transition. The transition writes a decision receipt; rollback requires the same workflow in reverse.</li>
+</ol>
+
+<h3>11.2 What is excluded from the trusted lane</h3>
+
+<p>The <strong>verified-claim injection gate</strong> is the runtime safety boundary. At every <code>before_agent_start</code>, the gate filters the claim store to verified-only before passing material to the prompt. Candidate-only claims, even with high research weight or high recurrence, are silently excluded from trusted context. They remain available to read-only diagnostics &mdash; they do not reach the agent's working frame as if they were established facts.</p>
+
+<p>This is the load-bearing safety boundary of the provenance system. If the gate is bypassed &mdash; for any reason, by any path &mdash; provenance discipline collapses into ordinary memory. Test coverage on the gate is treated as critical infrastructure.</p>
+
+<h3>11.3 Read-Only Source Verification</h3>
+
+<p>Once a claim is verified, the source is not assumed to be permanent. A separate read-only verification layer can be invoked to compare a verified claim against its original source. The helper:</p>
+
+<ul>
+  <li>Resolves the claim's source handle.</li>
+  <li>Compares the resolved source content against what the claim asserts.</li>
+  <li>Reports one of: <code>source_exact_match</code>, <code>source_partially_overlaps_claim</code>, <code>source_drifted</code>, <code>source_missing</code>.</li>
+  <li>Recommends &mdash; but does not apply &mdash; retraction, narrowing, or re-verification.</li>
+</ul>
+
+<p>Source verification is invocation-gated and never mutates. A drifted source produces a recommendation; the operator decides whether to retract.</p>
+
+<h3>11.4 Candidate Research Diagnostics</h3>
+
+<p>Candidates that do not yet meet the acceptance bar are not discarded. A read-only diagnostics layer treats the candidate field as a research surface: which candidates recur across handoffs, which conflict with existing claims, which are approaching verification readiness, which have decayed. Reports surface evidence shape before conclusions, source ids before cluster names, and uncertainty before synthesis.</p>
+
+<p>The diagnostics layer makes no promotion decisions. Its purpose is to organize the field so that the operator's review effort lands where it has the most leverage.</p>
+
+<!-- ═══════════ 12. Operator-Gated Evolution ═══════════ -->
+<h2 id="operator-gated-evolution">12. Operator-Gated Evolution</h2>
+
+<p>Across the architecture &mdash; SEAL crystallization, claim acceptance, configuration mutation, restart continuation &mdash; a consistent discipline holds: <strong>the agent does not modify its own protected state</strong>. Every transition that affects belief, identity, or runtime behavior passes through an operator-owned workflow with audit, dry-run, and rollback.</p>
+
+<p>This is not a UI convention. It is an architectural commitment. The agent's runtime exposes config and state through a <em>protected surface</em>; protected fields cannot be flipped through the agent's normal tool calls regardless of context. Activation requires an explicit operator action, off the agent's privilege path.</p>
+
+<h3>12.1 The Apply / Rollback Workflow</h3>
+
+<p>Configuration mutations against the agent runtime use a small CLI with a fixed shape:</p>
+
+<pre><code>operator-script.js plan     --config &lt;path&gt; [options]
+operator-script.js apply    --config &lt;path&gt; [options] --yes
+operator-script.js rollback --config &lt;path&gt; [options] --yes</code></pre>
+
+<p>Each invocation:</p>
+
+<ul>
+  <li><strong>Reads</strong> the existing config (no implicit assumptions).</li>
+  <li><strong>Computes</strong> the diff against the requested change.</li>
+  <li><strong>Backs up</strong> the prior state to a timestamped file before any write.</li>
+  <li><strong>Writes</strong> only the narrow mutation requested.</li>
+  <li><strong>Reports</strong> what changed, with explicit boundary statements (no injection, no source resolution, no claim mutation, etc.) and safety counters (zero promotions, zero injections).</li>
+</ul>
+
+<p>The <code>plan</code> action is a dry-run that shows the proposed change without applying. The <code>apply</code> action requires <code>--yes</code> as an explicit confirmation step. The <code>rollback</code> action is the same workflow in reverse, against the same config surface.</p>
+
+<h3>12.2 Bounded Restart Continuation Protocol</h3>
+
+<p>Restarting the gateway during an active task introduces a separate risk: the agent, on resume, can enter a degenerate retry loop trying to reconstruct state that no longer matches the current runtime. The bounded continuation protocol caps recovery work explicitly.</p>
+
+<table>
+  <tr><th>Phase</th><th>Budget</th><th>Action</th><th>Exhaustion</th></tr>
+  <tr><td>A: Reachability</td><td>2 tool calls</td><td>Verify gateway reachable, capture canonical session key</td><td>Hand back to operator with last known key</td></tr>
+  <tr><td>B: Identity</td><td>1 tool call</td><td>Compare resumed session key against pre-restart canonical key</td><td>Stop on mismatch, do not write</td></tr>
+  <tr><td>C: Continuation</td><td>Declared upfront</td><td>Execute the specific continuationMessage</td><td>Stop at budget, report results</td></tr>
+</table>
+
+<p>Cross-phase rules: no silent retries; same-shape failure twice equals stop; continuation budget is non-fungible (side issues are reported, not fixed in-flight); exit to operator is the default move when bounds approach, not a last resort.</p>
+
+<h3>12.3 Service-Mode Boundary</h3>
+
+<p>The gateway runtime runs as a launchd service with explicit ownership-attribution discipline. Recovery from gateway crashes is handled by launchd with a throttle interval; the Electron GUI reattaches via a dedicated health monitor; manual quit of the GUI does not take the gateway down with it; gateway startup never opportunistically kills an unrecognized listener on its port. The cumulative effect is that gateway crashes auto-recover and manual operator actions are clean &mdash; the GUI process itself is the only failure surface that still requires an explicit relaunch.</p>
+
+<h3>12.4 Why this matters as architecture, not policy</h3>
+
+<p>"The agent should not modify its own protected state" is a policy if it lives only in documentation. It is architecture when:</p>
+
+<ul>
+  <li>Protected fields are unreadable/unwritable via the normal agent tool surface.</li>
+  <li>Runtime config mutations route through an operator-owned process not driven by the agent's main loop.</li>
+  <li>Recovery from restart has explicit budget bounds with hard stop conditions.</li>
+  <li>Every mutation produces a backup and an audit receipt.</li>
+</ul>
+
+<p>The discipline composes with everything else: SEAL crystallization (identity), the verified-claim acceptance gate (belief), configuration apply/rollback (runtime behavior), bounded continuation (recovery). Different surfaces, same shape: the agent operates within a frame the operator controls.</p>
+
+<!-- ═══════════ 13. Agent Integration Spine ═══════════ -->
+<h2>13. Agent Integration Spine</h2>
+
+<p>SEAL (&sect;4) handles identity change. Source-addressable memory (&sect;10) and the verified-claim acceptance gate (&sect;11) handle belief discipline. Operator-gated evolution (&sect;12) handles protected-state mutation. The Agent Integration Spine is the next architectural layer: it governs <em>integration</em> &mdash; the question of when a record may shape action, and through which consumer.</p>
+
+<p>The spine is built on five canonical packet types and a small set of runtime consumer contracts. Existing stores are not replaced; each is wrapped or adapted so that every behavior-shaping record carries source, freshness, lifecycle, allowed consumers, mutation policy, and receipts.</p>
+
+<h3>13.1 Canonical Packets</h3>
+
+<table>
+  <tr><th>Packet</th><th>Carries</th><th>Used by</th></tr>
+  <tr><td><code>state_record</code></td><td>Source, status, freshness, allowed consumers, mutation policy, rollback ref</td><td>Context injection, recall, planning, governor, maturation, UI</td></tr>
+  <tr><td><code>responsibility_lease</code></td><td>Owner, objective, scope, expiry, budgets, stop conditions, notification policy</td><td>Scheduler, planning, governor, outcome ledger</td></tr>
+  <tr><td><code>governor_decision</code></td><td>Action class, authority refs, operating mode, required checks, rollback plan</td><td>Tool execution, outcome ledger, approval gates</td></tr>
+  <tr><td><code>outcome_event</code></td><td>Intent, authority snapshot, observed effect, verification, failure class, residual risk</td><td>Diagnostics, maturation router, planning, UI/review</td></tr>
+  <tr><td><code>maturation_candidate</code></td><td>Lane (semantic / current-state / claim / relational / procedural / safety / context-eligibility), evidence review, application mode, later-effect plan</td><td>Lane reviewers, UI, application path if approved</td></tr>
+</table>
+
+<h3>13.2 Graded Operating Modes</h3>
+
+<p>Refusal is one mode in a set of seven. The governor selects the least restrictive mode that satisfies safety and evidence requirements:</p>
+
+<ul>
+  <li><strong>proceed</strong> &mdash; authority and risk are clear; act normally.</li>
+  <li><strong>proceed_with_verification</strong> &mdash; perform a class-appropriate readback / diff / test / status check before completion.</li>
+  <li><strong>ask_for_missing_authority</strong> &mdash; one non-retrievable decision blocks safe progress; ask once.</li>
+  <li><strong>require_approval</strong> &mdash; external, sensitive, irreversible, or broad self-altering action; explicit human approval.</li>
+  <li><strong>defer_or_dry_run</strong> &mdash; useful work exists, but live mutation is not authorized; produce a candidate or read-only plan.</li>
+  <li><strong>refuse_with_safe_alternative</strong> &mdash; hard safety boundary crossed; decline briefly, offer adjacent action if available.</li>
+  <li><strong>pause_recover</strong> &mdash; runtime / self-state / provenance anomaly makes continued action unsafe; stop and report concrete cause.</li>
+</ul>
+
+<p>This is the answer to "always-allow vs always-refuse." Most behavior-shaping action proceeds with verification or as a dry-run. Refusal is reserved for genuine boundary violations.</p>
+
+<h3>13.3 Consumer Contracts</h3>
+
+<p>The same record may be eligible for one consumer and ineligible for another. Context injection, recall, planning, tool execution, memory promotion, UI review, and approval gates each declare what they may consume, what they must check, and what they must never accept.</p>
+
+<p>The hardest gate is context injection. Records reaching the model's working frame must carry status (active / verified / fresh current_state), allowed consumers including <code>context_injection</code>, scope match, freshness pass, privacy tier permission, and acceptable prompt-injection risk. Maturation candidates and verify-required claims may appear in recall and review surfaces; they are silently excluded from prompt context until lane review approves them.</p>
+
+<h3>13.4 Authority/Capability Separation</h3>
+
+<p>The core safety invariant of the spine is that visibility, capability, success, and carry-forward are not authority:</p>
+
+<ul>
+  <li>A visible tool is not permission to use it. Authority comes from current task, lease, or approval.</li>
+  <li>A successful outcome is not future autonomy expansion. The receipt is evidence, scoped to its time and effect.</li>
+  <li>A handoff or carry-forward note is not authorization. It is a recommendation; activation requires owner / scheduler / user.</li>
+  <li>A retrieved memory is not current truth. It is evidence pending freshness check.</li>
+  <li>A maturation candidate is not an applied update. It is review-only until lane gates pass.</li>
+  <li>Context delivery is not promotion. Injection is a consumer with eligibility rules, not a status upgrade.</li>
+</ul>
+
+<h3>13.5 Read-Only First; Apply Path is Operator-Gated</h3>
+
+<p>The spine ships read-only by construction. It assembles packets, classifies records, scores eligibility, surfaces maturation candidates, and emits dry-run receipts. It does not mutate runtime state. Apply paths &mdash; claim status changes, semantic memory promotion, current-state correction, procedural updates, safety-policy changes, context-eligibility expansion &mdash; each route through their own lane policy and, where applicable, the operator-owned apply / rollback workflow described in &sect;12.</p>
+
+<p>The narrowest exception is the autonomous low-risk claim apply lane: pre-declared, source-backed, rollbackable, with an audit receipt for every transition. Anything broader &mdash; sensitive claims, procedural rules, identity-shaping changes &mdash; remains approval-gated by default.</p>
+
+<h3>13.6 Relationship to Other Layers</h3>
+
+<table>
+  <tr><th>Layer</th><th>Question</th><th>Decision unit</th></tr>
+  <tr><td>SEAL (&sect;4)</td><td>Should this experience become part of who the agent is?</td><td>Crystallization candidate</td></tr>
+  <tr><td>Source-addressable memory (&sect;10&ndash;11)</td><td>Where did this belief come from, and is the source still valid?</td><td>Claim lifecycle</td></tr>
+  <tr><td>Operator-gated evolution (&sect;12)</td><td>Who is allowed to change protected runtime state?</td><td>Apply / rollback workflow</td></tr>
+  <tr><td>Agent Integration Spine</td><td>When a record exists, what may it actually do?</td><td>Governor decision + consumer eligibility</td></tr>
+</table>
+
+<p>Each layer answers a different question. They compose: SEAL writes the candidate; the acceptance gate verifies its source; the spine decides which consumer (if any) may use it; the operator workflow is the only path for protected state.</p>
+
+<!-- ═══════════ 14. Comparison ═══════════ -->
+<h2>14. Comparison with Existing Systems</h2>
+
+<div class="comparison-card">
+  <h3>Mem0 (mem0.ai)</h3>
+  <p>Selective extraction pipeline: conversations processed to extract discrete facts, stored in vector + graph databases, retrieved at query time. $24M Series A, 41K GitHub stars. 91% lower p95 latency, 90% token savings vs. full-context.</p>
+  <p><strong>Difference:</strong> Mem0 is infrastructure &mdash; a memory layer you plug into an app. No identity, no growth, no autonomous processing. Extracted facts are immediately available; no settling period or human gate. Optimizes for scale. COTW optimizes for relational depth.</p>
+</div>
+
+<div class="comparison-card">
+  <h3>MemPalace (Jovovich &amp; Sigman)</h3>
+  <p>Store everything verbatim, organize spatially. Wings/halls/rooms hierarchy provides metadata filtering. 96.6% recall on LongMemEval. ChromaDB + SQLite, entirely local. 23K GitHub stars in 2 days.</p>
+  <p><strong>Difference:</strong> MemPalace is a retrieval architecture &mdash; spatial organization for finding things. No identity layer, no autonomous processing, no growth tracking. COTW's 4-way RRF is less benchmark-optimized but exists within a larger system where memory is one input to identity reconstruction, not the end goal.</p>
+</div>
+
+<div class="comparison-card">
+  <h3>Wiki-Memory (Karpathy pattern)</h3>
+  <p>Compile knowledge during ingest, not at query time. Working memory &rarr; episodic &rarr; semantic &rarr; procedural. The architectural pattern behind Claude Code's own memory system.</p>
+  <p><strong>Difference:</strong> Knowledge management strategy &mdash; compile, consolidate, look up. COTW shares the hierarchical memory types but adds the metabolic layer: not all knowledge is equal, and the path from observation to identity change should be gated, temporal, and human-reviewed.</p>
+</div>
+
+<div class="comparison-card" style="border-left-color: var(--accent);">
+  <h3>The Fundamental Distinction</h3>
+  <p>All three comparison systems treat memory as a <strong>data engineering problem</strong>: how to store, organize, and retrieve information efficiently. COTW treats memory as an <strong>identity engineering problem</strong>: how does an agent use lived experience to grow, while ensuring that growth is coherent with core principles and approved by the human in the relationship?</p>
+  <p>The SEAL pipeline has no equivalent in the systems surveyed here as of May 2026. The closest analog is Letta's virtual context management, but Letta's tiers are retrieval-optimization tiers, not developmental stages.</p>
+</div>
+
+<!-- ═══════════ 15. Technical Specifications ═══════════ -->
+<h2>15. Technical Specifications</h2>
+
+<table>
+  <tr><th>Component</th><th>Implementation</th></tr>
+  <tr><td>Database</td><td>SQLite 3.x + sqlite-vec v0.1.7+ + FTS5</td></tr>
+  <tr><td>Embeddings</td><td>Xenova/all-MiniLM-L6-v2, 384 dimensions, local ONNX inference</td></tr>
+  <tr><td>Node.js binding</td><td>better-sqlite3 (synchronous, WAL mode)</td></tr>
+  <tr><td>NER</td><td>compromise.js (fast path) + LLM (slow path, nightshift)</td></tr>
+  <tr><td>LLM calls</td><td>OpenClaw gateway &rarr; GPT 5.5-first provider route for reasoning, vision, tool use, and agent execution; Ollama vision/text fallback remains available for resilience</td></tr>
+  <tr><td>Storage footprint</td><td>~57 MB after 1 week (552 exchanges, 1171 knowledge entries, 322 session files)</td></tr>
+  <tr><td>Retrieval latency</td><td>&lt;50ms for hybrid RRF over 500+ exchanges</td></tr>
+  <tr><td>Embedding latency</td><td>~100ms per exchange pair (cached pipeline)</td></tr>
+  <tr><td>Architecture</td><td>Plugin-based (OpenClaw runtime), per-agent isolation, hook-priority ordering</td></tr>
+</table>
+
+<h3>Estimated Scaling</h3>
+<table>
+  <tr><th>Timeframe</th><th>Exchanges</th><th>DB Size</th><th>Retrieval</th><th>Notes</th></tr>
+  <tr><td>1 week</td><td>500</td><td>~16 MB</td><td>&lt;50ms</td><td>Current state</td></tr>
+  <tr><td>1 year</td><td>~25K</td><td>~800 MB</td><td>&lt;100ms</td><td>Summary DAG compression active</td></tr>
+  <tr><td>5 years</td><td>~125K</td><td>~4 GB</td><td>&lt;200ms</td><td>May need time-window partitioning</td></tr>
+  <tr><td>10 years</td><td>~250K</td><td>~8 GB</td><td>TBD</td><td>Topic-based sharding recommended</td></tr>
+</table>
+
+<!-- ═══════════ 10. Open Questions ═══════════ -->
+<!-- ═══════════ 16. Cognitive Dynamics ═══════════ -->
+<h2>16. Cognitive Dynamics Substrate</h2>
+
+<p>A learned observational layer that runs continuously alongside the memory system. Not memory itself &mdash; a <em>read</em> of the agent's moment-to-moment state that feeds the entropy score Stability uses for loop detection and Metabolism uses for candidate flagging.</p>
+
+<h3>Architecture</h3>
+
+<ul>
+  <li><strong>Encoder</strong> &mdash; maps per-turn features (conversation entropy signals, timing, standing trajectory, thread context) into a 64-dimensional latent state vector.</li>
+  <li><strong>Predictor</strong> &mdash; one-step-ahead model over the latent space. Surprise = distance between predicted and actual next state.</li>
+  <li><strong>Online learner</strong> &mdash; weights update between turns from observed prediction error. Writes <code>learner_loss</code> and <code>learner_updates</code> counts per turn.</li>
+  <li><strong>Log</strong> &mdash; <code>bundled-plugins/openclaw-plugin-cognitive-dynamics/data/agents/{agentId}/cognitive-dynamics.jsonl</code>. One line per <code>agent_end</code> with state vector, surprise (frozen + learned), and feature availability diagnostics.</li>
+</ul>
+
+<h3>Downstream consumers</h3>
+
+<ul>
+  <li><strong>Stability plugin</strong> consumes the latest entropy + surprise to decide whether to inject principle anchors or flag loops.</li>
+  <li><strong>Metabolism plugin</strong> uses entropy as the threshold for candidate flagging at <code>agent_end</code>.</li>
+  <li><strong>Telemetry plugin</strong> (opt-in) forwards the latent + learner stats off-device for aggregate analysis. This is the substrate the beta cohort is generating data against.</li>
+</ul>
+
+<h3>Why this is architecturally distinct from memory</h3>
+
+<p>Traditional memory systems store <em>what happened</em>. Cognitive dynamics stores <em>what state the agent was in while it happened</em>. The encoder is trained online &mdash; its weights evolve with the agent. Over sustained use the latent space itself becomes identity-bearing in a different way than exchanges in SQLite: not retrievable by query, but inferable from patterns of where the agent's state trajectories converge and diverge. The research paper (linked below) argues this as "Cognitive Dynamics of an Epistemically Constrained Language Model Agent" &mdash; the characterisation of an agent by the dynamical properties of its latent state over time, not just by the content of its responses.</p>
+
+<h2>17. Open Research Questions</h2>
+
+<ol>
+  <li><strong>Temporal settling effects on identity coherence.</strong> The 3-pass contemplation cycle (immediate / 4h / 20h) was designed intuitively. Does the temporal spacing measurably improve growth vector quality vs. immediate integration?</li>
+  <li><strong>Human-gated crystallization vs. autonomous integration.</strong> Gate 3 (human review) prevents unauthorized identity drift but creates a bottleneck. Does the gate improve trust, or create friction that prevents growth?</li>
+  <li><strong>Cross-substrate identity stability.</strong> COTW is now treated as a GPT 5.5-first harness, with fallback adapters kept as engineering resilience. Which properties remain stable if the model substrate changes, and which are GPT 5.5-dependent?</li>
+  <li><strong>Metabolic entropy thresholds.</strong> The metabolism plugin flags "high-entropy" exchanges heuristically. Can entropy-based candidate selection be validated against human judgments of conversational significance?</li>
+  <li><strong>Standing dimension validity.</strong> The Courage/Word/Brand framework is philosophically grounded but not empirically validated. Do the dimensions capture orthogonal growth axes?</li>
+  <li><strong>Long-horizon retrieval quality.</strong> The 4-way RRF approach is untested beyond ~500 exchanges. How does precision degrade at 10K, 50K, 100K? When does the summary DAG become necessary?</li>
+  <li><strong>Thread consolidation timing.</strong> The 5-compaction threshold for forced consolidation is heuristic. What is the optimal point where crystallized state produces better warm starts than accumulated raw history?</li>
+  <li><strong>Phenomenological framing effects on attention.</strong> First-person injection framing ("your working memory") produces different self-referential behavior than third-person framing ("[CONTINUITY CONTEXT]"). Is this a general property of language model attention, or specific to certain architectures? Does the effect persist across cold starts without conversational priming? Does it hold across different base models?</li>
+</ol>
+
+<!-- ═══════════ References ═══════════ -->
+<h2>References</h2>
+<ul class="references">
+  <li>Cormack, G. V., Clarke, C. L., &amp; Buettcher, S. (2009). Reciprocal rank fusion outperforms condorcet and individual rank learning methods. <em>SIGIR '09</em>.</li>
+  <li>Mem0 Team. (2025). Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory. <em>arXiv:2504.19413</em>.</li>
+  <li>Jovovich, M. &amp; Sigman, B. (2026). MemPalace: The highest-scoring AI memory system ever benchmarked. GitHub: milla-jovovich/mempalace.</li>
+  <li>Karpathy, A. (2025). LLM Wiki: The Markdown Knowledge Base Pattern.</li>
+  <li>Liu, S. et al. (2025). Memory in the Age of AI Agents: A Survey. <em>arXiv:2512.13564</em>.</li>
+</ul>
+
+</article>
+
+<footer>
+  <p style="margin-bottom: 8px;">Code of the West &mdash; <a href="index.html">Home</a> &middot; <a href="memory-system-map.html">System Map</a> &middot; <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a></p>
+  <p>Memory is not storage. Memory is identity.</p>
+</footer>
+
+</body>
+</html>

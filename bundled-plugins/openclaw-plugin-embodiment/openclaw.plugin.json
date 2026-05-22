@@ -1,0 +1,63 @@
+{
+  "id": "embodiment",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "TonyPi Embodiment",
+  "description": "Gives Clint a physical body via TonyPi Pro humanoid robot. Provides body awareness (sensors, camera, orientation), intentional action (walk, wave, look), and scene detection (face tracking, vision). Body state injected into context when connected.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "piHost": {
+        "type": "string",
+        "description": "TonyPi Pi hostname or IP address",
+        "default": "192.168.12.179"
+      },
+      "piPort": {
+        "type": "number",
+        "description": "TonyPi embodiment server port",
+        "default": 8420
+      },
+      "polling": {
+        "type": "object",
+        "description": "Body state polling configuration",
+        "properties": {
+          "enabled": { "type": "boolean", "default": true },
+          "intervalMs": { "type": "number", "default": 15000 },
+          "injectBodyState": { "type": "boolean", "default": true }
+        }
+      }
+    }
+  },
+  "contracts": {
+    "tools": [
+      "body_action",
+      "body_state",
+      "body_look",
+      "body_sense",
+      "body_detect_scene",
+      "body_capture_frame",
+      "body_look_closely",
+      "body_depth",
+      "body_scan",
+      "body_map",
+      "body_list_actions",
+      "body_stop",
+      "body_track_face",
+      "body_walk",
+      "body_navigate",
+      "body_mode",
+      "body_pilot_tick",
+      "body_record_movement",
+      "body_replay_movement",
+      "body_learn_action",
+      "body_sweep",
+      "body_reflex",
+      "body_explore",
+      "body_explore_stop",
+      "body_voice"
+    ]
+  }
+}

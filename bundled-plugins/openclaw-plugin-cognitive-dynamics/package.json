@@ -1,0 +1,7 @@
+{
+  "name": "openclaw-plugin-cognitive-dynamics",
+  "version": "0.1.0",
+  "description": "JEPA-based cognitive state predictor for OpenClaw",
+  "main": "index.js",
+  "private": true
+}

@@ -1,0 +1,34 @@
+node_modules/
+dist/
+bundled-openclaw/
+!bundled-openclaw/
+!bundled-openclaw/**
+*.dmg
+*.exe
+*.AppImage
+*.zip
+*.map
+*.bak
+package-lock.json
+# Plugin runtime data — per-agent learned state, not source
+bundled-plugins/*/data/
+# Backups and dev artifacts
+backups/
+scripts/*
+# Exceptions: files that must ship to testers via git clone
+!scripts/beta-setup.sh
+!scripts/beta-setup.ps1
+!scripts/notarize.js
+!scripts/build-speech-helper.sh
+!scripts/continuity-compaction-health.js
+!scripts/apply-openclaw-local-patches.js
+!scripts/check-gateway-service-abi.js
+!scripts/gateway-service-handoff-latch.js
+!scripts/install-gateway-service-electron-node.sh
+!scripts/restart-proof-harness.js
+!scripts/schedule-gateway-service-restart.js
+node-runtime/
+native/macos/SpeechHelper/.build/
+native/macos/bin/
+.DS_Store
+SECURITY-AUDIT-*

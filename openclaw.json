@@ -1,0 +1,160 @@
+{
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "{{GATEWAY_TOKEN}}"
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": {
+          "enabled": true
+        },
+        "responses": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://127.0.0.1:11434",
+        "apiKey": "ollama-local",
+        "api": "ollama",
+        "models": [
+          {
+            "id": "glm-5:cloud",
+            "name": "GLM-5 Cloud",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 202752,
+            "maxTokens": 16384
+          },
+          {
+            "id": "qwen3.5:cloud",
+            "name": "Qwen3.5 Cloud Vision",
+            "reasoning": false,
+            "input": ["text", "image"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 32768,
+            "maxTokens": 4096
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "ollama/glm-5:cloud"
+      },
+      "userTimezone": "America/Los_Angeles",
+      "blockStreamingDefault": "on",
+      "bootstrapMaxChars": 50000,
+      "bootstrapTotalMaxChars": 150000,
+      "compaction": {
+        "mode": "default",
+        "reserveTokensFloor": 30000,
+        "maxHistoryShare": 0.4,
+        "recentTurnsPreserve": 5,
+        "truncateAfterCompaction": true,
+        "maxActiveTranscriptBytes": "20mb",
+        "postCompactionSections": [
+          "Every Session",
+          "Memory",
+          "Recovery Protocol",
+          "Agent Mode Rules",
+          "Task Transparency",
+          "Tool Provenance",
+          "Contemplation",
+          "User Competency Assessment",
+          "Interaction Philosophy",
+          "The Four Lenses",
+          "Situational Modules",
+          "Standing",
+          "Witness Journal",
+          "Guardrails",
+          "Capability Tiers",
+          "The Guide Posture",
+          "Wellbeing Stance",
+          "Proactivity Permission"
+        ]
+      }
+    },
+    "list": [
+      {
+        "id": "trail-guide",
+        "default": true,
+        "name": "{{AGENT_NAME}}",
+        "workspace": "{{WORKSPACE_PATH}}",
+        "heartbeat": {
+          "every": "2h",
+          "activeHours": {
+            "start": "22:00",
+            "end": "07:00",
+            "timezone": "America/Los_Angeles"
+          },
+          "target": "none",
+          "prompt": "Read HEARTBEAT.md. If your office hours task board has active tasks, pick one and make progress. Work incrementally — save progress to workspace files after each pass. When a task is complete, write a detailed report, mark it done in HEARTBEAT.md, and move it to the Completed section with the report file path. If nothing needs work, reply HEARTBEAT_OK."
+        }
+      }
+    ]
+  },
+  "channels": {},
+  "update": {
+    "checkOnStart": false,
+    "auto": { "enabled": false }
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "bindings": [
+    {
+      "agentId": "trail-guide",
+      "match": { "channel": "electron" }
+    },
+    {
+      "agentId": "trail-guide",
+      "match": { "channel": "webchat" }
+    }
+  ],
+  "plugins": {
+    "load": {
+      "paths": {{PLUGIN_PATHS}}
+    },
+    "entries": {
+      "memory-wiki": {
+        "enabled": true,
+        "config": {
+          "vaultMode": "unsafe-local",
+          "vault": { "path": "{{WORKSPACE_PATH}}/wiki", "renderMode": "obsidian" },
+          "search": { "backend": "shared", "corpus": "all" },
+          "unsafeLocal": {
+            "allowPrivateMemoryCoreAccess": true,
+            "paths": [
+              "{{WORKSPACE_PATH}}/memory",
+              "{{WORKSPACE_PATH}}/MEMORY.md"
+            ]
+          },
+          "ingest": { "autoCompile": true },
+          "context": { "includeCompiledDigestPrompt": true }
+        }
+      },
+      "epistemic-proof-loop": {
+        "enabled": true,
+        "hooks": {
+          "allowConversationAccess": true,
+          "allowPromptInjection": true
+        },
+        "config": {
+          "enabled": true,
+          "logDecisions": false
+        }
+      }
+    }
+  }
+}

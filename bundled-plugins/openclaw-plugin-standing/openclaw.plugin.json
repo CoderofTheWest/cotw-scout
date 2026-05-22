@@ -1,0 +1,22 @@
+{
+  "id": "standing",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Standing Evaluation",
+  "version": "0.1.0",
+  "description": "Tracks growth across Courage, Word, and Brand via pattern detection and nightshift synthesis",
+  "main": "index.js",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean" },
+      "patternDetection": { "type": "object" },
+      "synthesis": { "type": "object" },
+      "contextInjection": { "type": "object" },
+      "llm": { "type": "object" },
+      "nightshift": { "type": "object" },
+      "reportThresholds": { "type": "array", "items": { "type": "number" } }
+    }
+  }
+}

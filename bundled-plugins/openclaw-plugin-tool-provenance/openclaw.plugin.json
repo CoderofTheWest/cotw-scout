@@ -1,0 +1,15 @@
+{
+  "id": "tool-provenance",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Tool Provenance",
+  "description": "Detects tool shadowing and narration-without-execution patterns. Tracks tool usage and warns about unknown tools.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean", "default": true }
+    }
+  }
+}

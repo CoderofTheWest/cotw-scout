@@ -1,0 +1,52 @@
+{
+  "name": "cotw-scout",
+  "version": "0.2.2",
+  "private": true,
+  "productName": "COTW Scout",
+  "description": "Code of the West Scout — Local relational AI agent",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --dev",
+    "postinstall": "electron-builder install-app-deps && node scripts/apply-openclaw-local-patches.js",
+    "build:speech-helper": "bash scripts/build-speech-helper.sh",
+    "build": "npm run build:speech-helper && electron-builder",
+    "build:mac": "npm run build:speech-helper && electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:dir": "electron-builder --dir",
+    "service:install:electron-node": "bash scripts/install-gateway-service-electron-node.sh",
+    "service:check:abi": "node scripts/check-gateway-service-abi.js",
+    "check:templates": "node lib/check-templates.js",
+    "test": "node --test 'test/**/*.test.js'",
+    "service:handoff:latch": "node scripts/gateway-service-handoff-latch.js"
+  },
+  "dependencies": {
+    "@chroma-core/default-embed": "^0.1.9",
+    "axios": "^1.16.1",
+    "better-sqlite3": "^12.6.0",
+    "compromise": "^14.15.0",
+    "electron-updater": "^6.8.3",
+    "js-yaml": "^4.1.0",
+    "katex": "^0.16.45",
+    "openclaw": "2026.5.19",
+    "sqlite-vec": "^0.1.7"
+  },
+  "optionalDependencies": {
+    "sqlite-vec-darwin-arm64": "0.1.9",
+    "sqlite-vec-win32-x64-msvc": "0.1.9"
+  },
+  "devDependencies": {
+    "@electron/notarize": "^3.1.1",
+    "electron": "^41.2.1",
+    "electron-builder": "^26.8.1"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "overrides": {
+    "uuid": "^14.0.0",
+    "protobufjs": "^7.6.1",
+    "@protobufjs/utf8": "^1.1.1",
+    "fast-uri": "^3.1.2",
+    "brace-expansion": "^5.0.6"
+  }
+}

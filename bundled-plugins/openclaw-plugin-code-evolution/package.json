@@ -1,0 +1,28 @@
+{
+  "name": "code-evolution",
+  "version": "0.1.0",
+  "description": "Self-evolving scaffolding for Code mode. Records coding sessions, analyzes failure patterns, proposes and evaluates scaffold mutations (prompts, tool hints, workflows, parameters, executable rules), and commits improvements via nightshift.",
+  "main": "index.js",
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "code-evolution",
+    "self-improvement",
+    "scaffold",
+    "coding"
+  ],
+  "author": "Chris Hunt & Clint",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "openclaw": {
+    "extensions": ["./index.js"]
+  },
+  "files": [
+    "index.js",
+    "openclaw.plugin.json",
+    "config.default.json",
+    "lib/"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "nightshift",
+  "version": "0.1.0",
+  "description": "Off-hours task scheduler for OpenClaw agents. Respects user workflow by running heavy LLM processing during configurable quiet hours.",
+  "main": "index.js",
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "scheduler",
+    "nightshift",
+    "processing",
+    "off-hours"
+  ],
+  "author": "Chris Hunt & Clint",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "openclaw": {
+    "extensions": ["./index.js"]
+  },
+  "files": [
+    "index.js",
+    "openclaw.plugin.json",
+    "config.default.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CoderofTheWest/openclaw-plugin-nightshift"
+  }
+}

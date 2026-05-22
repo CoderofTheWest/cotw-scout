@@ -1,0 +1,56 @@
+{
+  "enabled": true,
+
+  "recording": {
+    "maxToolCallsPerSession": 200,
+    "resultTruncateChars": 500,
+    "sessionRetentionDays": 30
+  },
+
+  "storage": {
+    "dataDir": null
+  },
+
+  "analysis": {
+    "minSessionsForPattern": 3,
+    "patternConfidenceThreshold": 0.6,
+    "maxPatternsPerCycle": 5,
+    "minToolFailuresForProposal": 2,
+    "highToolCallThreshold": 40,
+    "minCorrectionSignalsForProposal": 2
+  },
+
+  "mutation": {
+    "maxPerCycle": 2,
+    "maxPromptDeltaWords": 50,
+    "commitThreshold": 0.6,
+    "confidenceThreshold": 0.7,
+    "autoRevertDropThreshold": 0.10
+  },
+
+  "evaluation": {
+    "maxReplayTestCases": 3,
+    "maxTurnsPerReplay": 5,
+    "minHistoricalSamples": 3
+  },
+
+  "nightshift": {
+    "priority": 40,
+    "taskType": "code-evolution"
+  },
+
+  "parameters": {
+    "bounds": {
+      "temperature": { "min": 0.1, "max": 0.7 },
+      "top_p": { "min": 0.8, "max": 0.95 },
+      "frequency_penalty": { "min": 0.0, "max": 0.2 },
+      "presence_penalty": { "min": 0.0, "max": 0.15 }
+    }
+  },
+
+  "llm": {
+    "endpoint": "http://127.0.0.1:11434/v1/chat/completions",
+    "model": null,
+    "timeoutMs": 30000
+  }
+}

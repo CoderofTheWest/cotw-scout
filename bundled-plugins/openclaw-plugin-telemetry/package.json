@@ -1,0 +1,7 @@
+{
+  "name": "openclaw-plugin-telemetry",
+  "version": "0.1.0",
+  "description": "Anonymized usage telemetry for COTW agents (opt-in only)",
+  "main": "index.js",
+  "license": "MIT"
+}

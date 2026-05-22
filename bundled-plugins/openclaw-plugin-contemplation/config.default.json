@@ -1,0 +1,27 @@
+{
+  "enabled": true,
+  "_note": "Output paths resolved per-agent at runtime from workspace metadata. Set output.growthVectorsPath/insightsPath to override.",
+  "passes": {
+    "1": { "delayMs": 0, "prompt": "Initial exploration of the inquiry. Clarify what is unknown and why it matters." },
+    "2": { "delayMs": 14400000, "prompt": "Deeper reflection. Connect this inquiry to prior patterns and constraints." },
+    "3": { "delayMs": 72000000, "prompt": "Final synthesis. Produce a concise growth vector with practical implications." }
+  },
+  "extraction": {
+    "entropyThreshold": 0.5,
+    "keywords": ["I wonder", "I'm curious", "don't understand", "unclear", "I need to learn"],
+    "maxGapsPerExchange": 2
+  },
+  "llm": {
+    "_note": "Model/endpoint are resolved at runtime from the gateway's configured primary (see openclaw.json → agents.defaults.model.primary). Only temperature, maxTokens, and timeoutMs are tunable here.",
+    "temperature": 0.6,
+    "maxTokens": 700,
+    "timeoutMs": 180000
+  },
+  "nightshift": {
+    "priority": 50
+  },
+  "tagging": {
+    "enabled": true
+  },
+  "output": {}
+}

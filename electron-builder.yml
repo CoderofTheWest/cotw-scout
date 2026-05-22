@@ -1,0 +1,150 @@
+appId: com.codeofthewest.scout
+productName: COTW Scout
+copyright: Copyright 2026 Code of the West
+
+directories:
+  output: dist
+  buildResources: assets
+
+# Files included in the ASAR archive
+files:
+  - "main.js"
+  - "preload.js"
+  - "tunnel.js"
+  - "cotw-scout-gui.html"
+  - "openclaw.json"
+  - "lib/**/*"
+  - "fonts/**/*"
+  - "icons/**/*"
+  # Only the 4 used background images (not the full 29MB dir)
+  - "images/darkwoodwall.jpg"
+  - "images/longfenclinelandscape.jpg"
+  - "images/cafe booth.PNG"
+  - "images/stormy_field.PNG"
+  - "images/cotw-logo.svg"
+  - "package.json"
+  # Exclude dev artifacts and wrong-platform/native ballast.
+  # The mac arm64 build only needs runtime deps plus native binaries for
+  # darwin/arm64. Keeping the other ONNX/Koffi platform payloads makes the DMG
+  # large enough that Apple notarization uploads become unreliable.
+  - "!node_modules/electron"
+  - "!node_modules/electron-builder"
+  - "!node_modules/sqlite-vec-linux-*"
+  - "!node_modules/onnxruntime-web{,/**/*}"
+  - "!node_modules/onnxruntime-node/bin/napi-v3/darwin/x64{,/**/*}"
+  - "!node_modules/onnxruntime-node/bin/napi-v3/linux{,/**/*}"
+  - "!node_modules/onnxruntime-node/bin/napi-v3/win32{,/**/*}"
+  - "!node_modules/koffi/build/koffi/darwin_x64{,/**/*}"
+  - "!node_modules/koffi/build/koffi/freebsd_*{,/**/*}"
+  - "!node_modules/koffi/build/koffi/linux_*{,/**/*}"
+  - "!node_modules/koffi/build/koffi/musl_*{,/**/*}"
+  - "!node_modules/koffi/build/koffi/openbsd_*{,/**/*}"
+  - "!node_modules/koffi/build/koffi/win32_*{,/**/*}"
+  - "!node_modules/@huggingface/transformers/.cache{,/**/*}"
+  - "!node_modules/@huggingface/transformers/dist/ort-*"
+  - "!node_modules/@huggingface/transformers/dist/*.map"
+  - "!node_modules/@huggingface/transformers/src{,/**/*}"
+  - "!node_modules/@huggingface/transformers/types{,/**/*}"
+  - "!node_modules/**/*.map"
+  - "!node_modules/better-sqlite3/deps/sqlite3/sqlite3.c"
+  - "!node_modules/openclaw/docs{,/**/*}"
+  - "!node_modules/@mariozechner/clipboard-darwin-universal{,/**/*}"
+  - "!dist"
+  - "!backups"
+  - "!scripts"
+  - "!template"
+  - "!docs"
+  - "!updates"
+  - "!node-runtime"
+  - "!.git"
+
+# Directories that MUST be on real filesystem (not inside ASAR).
+# OpenClaw spawns as child process via Electron-as-Node (ELECTRON_RUN_AS_NODE).
+# Critical: openclaw is "type": "module" (ESM). ESM resolution does NOT
+# traverse asar boundaries — bare imports like `tslog`/`chalk`/`ajv` walk up
+# the real filesystem, so every hoisted dep openclaw transitively imports
+# must be unpacked, not just openclaw itself. Unpack all of node_modules to
+# avoid maintaining a brittle allowlist.
+asarUnpack:
+  - "node_modules/**/*"
+  - "node_modules/.bin/openclaw*"
+
+# Extra resources copied alongside app.asar (at process.resourcesPath/)
+extraResources:
+  - from: "bundled-plugins"
+    to: "bundled-plugins"
+    filter:
+      - "**/*"
+      - "!**/data/**"
+  - from: "bundled-template"
+    to: "bundled-template"
+    filter:
+      - "**/*"
+  - from: "bundled-openclaw"
+    to: "bundled-openclaw"
+    filter:
+      - "**/*"
+  - from: "node-runtime/${os}-${arch}"
+    to: "node-runtime"
+  - from: "native/macos/bin"
+    to: "native/macos/bin"
+    filter:
+      - "cotw-speech-helper"
+
+# ---- Mac ----
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+  category: public.app-category.lifestyle
+  icon: icons/app-icon.icns
+  darkModeSupport: true
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: assets/entitlements.mac.plist
+  entitlementsInherit: assets/entitlements.mac.plist
+  notarize: false  # Handled via custom afterSign hook (see scripts/notarize.js)
+  extendInfo:
+    NSMicrophoneUsageDescription: "COTW Scout uses the microphone only while you hold push-to-talk."
+    NSSpeechRecognitionUsageDescription: "COTW Scout uses Apple Speech Recognition to transcribe push-to-talk voice input locally through macOS."
+
+# Notarization hook — runs after electron-builder signs the .app, submits
+# to Apple's notary service, waits for approval, then staples the ticket.
+# Credentials are read from macOS Keychain (service: "cotw-notarization").
+afterSign: scripts/notarize.js
+
+# Publish target for auto-update (Phase 2 — wired in main.js via electron-updater)
+publish:
+  provider: github
+  owner: CoderofTheWest
+  repo: cotw-scout
+  releaseType: release
+
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+  window:
+    width: 540
+    height: 380
+
+# ---- Windows ----
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: icons/app-icon.ico
+
+nsis:
+  oneClick: true
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true

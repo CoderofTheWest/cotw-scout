@@ -1,0 +1,13 @@
+name = "cotw-telemetry"
+main = "src/index.js"
+compatibility_date = "2026-04-21"
+# Public template value. Set the real account id through private deployment config.
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cotw-telemetry"
+database_id = "YOUR_D1_DATABASE_ID"
+
+[observability]
+enabled = true

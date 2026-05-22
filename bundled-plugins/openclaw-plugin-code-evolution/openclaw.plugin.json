@@ -1,0 +1,79 @@
+{
+  "id": "code-evolution",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Code Mode Self-Evolution",
+  "description": "Self-evolving scaffolding for Code mode. Records sessions, analyzes failure patterns, proposes scaffold mutations, evaluates via real replay, and commits improvements during nightshift. Adapts prompts, tool hints, workflow rules, sampling parameters, and executable rules over time.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "recording": {
+        "type": "object",
+        "properties": {
+          "maxToolCallsPerSession": { "type": "number", "default": 200 },
+          "resultTruncateChars": { "type": "number", "default": 500 },
+          "sessionRetentionDays": { "type": "number", "default": 30 }
+        }
+      },
+      "storage": {
+        "type": "object",
+        "properties": {
+          "dataDir": { "anyOf": [{ "type": "string" }, { "type": "null" }], "default": null }
+        }
+      },
+      "analysis": {
+        "type": "object",
+        "properties": {
+          "minSessionsForPattern": { "type": "number", "default": 3 },
+          "patternConfidenceThreshold": { "type": "number", "default": 0.6 },
+          "maxPatternsPerCycle": { "type": "number", "default": 5 },
+          "minToolFailuresForProposal": { "type": "number", "default": 2 },
+          "highToolCallThreshold": { "type": "number", "default": 40 },
+          "minCorrectionSignalsForProposal": { "type": "number", "default": 2 }
+        }
+      },
+      "mutation": {
+        "type": "object",
+        "properties": {
+          "maxPerCycle": { "type": "number", "default": 2 },
+          "maxPromptDeltaWords": { "type": "number", "default": 50 },
+          "commitThreshold": { "type": "number", "default": 0.6 },
+          "confidenceThreshold": { "type": "number", "default": 0.7 },
+          "autoRevertDropThreshold": { "type": "number", "default": 0.10 }
+        }
+      },
+      "evaluation": {
+        "type": "object",
+        "properties": {
+          "maxReplayTestCases": { "type": "number", "default": 3 },
+          "maxTurnsPerReplay": { "type": "number", "default": 5 },
+          "minHistoricalSamples": { "type": "number", "default": 3 }
+        }
+      },
+      "nightshift": {
+        "type": "object",
+        "properties": {
+          "priority": { "type": "number", "default": 40 },
+          "taskType": { "type": "string", "default": "code-evolution" }
+        }
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "bounds": {
+            "type": "object",
+            "properties": {
+              "temperature": { "type": "object", "properties": { "min": { "type": "number", "default": 0.1 }, "max": { "type": "number", "default": 0.7 } } },
+              "top_p": { "type": "object", "properties": { "min": { "type": "number", "default": 0.8 }, "max": { "type": "number", "default": 0.95 } } },
+              "frequency_penalty": { "type": "object", "properties": { "min": { "type": "number", "default": 0.0 }, "max": { "type": "number", "default": 0.2 } } },
+              "presence_penalty": { "type": "object", "properties": { "min": { "type": "number", "default": 0.0 }, "max": { "type": "number", "default": 0.15 } } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

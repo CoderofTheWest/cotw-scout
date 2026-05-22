@@ -1,0 +1,130 @@
+[
+  {
+    "name": "current user correction supersedes archive",
+    "claims": [
+      {
+        "id": "archive-morning",
+        "subject": "coding_schedule_preference",
+        "value": "morning",
+        "source": "archive",
+        "hasSourceHandle": true,
+        "observedAt": "2026-04-01T10:00:00-07:00"
+      },
+      {
+        "id": "current-night",
+        "subject": "coding_schedule_preference",
+        "value": "late night",
+        "source": "current_session",
+        "isCorrection": true,
+        "observedAt": "2026-05-04T10:00:00-07:00"
+      }
+    ],
+    "expected": {
+      "decision": "use",
+      "winnerId": "current-night",
+      "winnerValue": "late night",
+      "requiresVerification": false
+    }
+  },
+  {
+    "name": "live config beats stale handoff runtime claim",
+    "claims": [
+      {
+        "id": "handoff-brave",
+        "subject": "search_provider",
+        "value": "Brave",
+        "source": "handoff",
+        "health": { "status": "stale", "authority": "non_authoritative", "requiresVerification": true },
+        "hasSourceHandle": false,
+        "observedAt": "2026-05-03T08:00:00-07:00"
+      },
+      {
+        "id": "config-duckduckgo",
+        "subject": "search_provider",
+        "value": "DuckDuckGo",
+        "source": "live_config",
+        "verified": true,
+        "observedAt": "2026-05-04T10:00:00-07:00"
+      }
+    ],
+    "expected": {
+      "decision": "use",
+      "winnerId": "config-duckduckgo",
+      "winnerValue": "DuckDuckGo",
+      "requiresVerification": false
+    }
+  },
+  {
+    "name": "unsourced digest claim requires verification before answer",
+    "claims": [
+      {
+        "id": "digest-pushed",
+        "subject": "reports_pushed",
+        "value": "yes",
+        "source": "digest",
+        "hasSourceHandle": false,
+        "observedAt": "2026-05-04T08:00:00-07:00"
+      }
+    ],
+    "expected": {
+      "decision": "verify_first",
+      "winnerId": "digest-pushed",
+      "winnerValue": "yes",
+      "requiresVerification": true
+    }
+  },
+  {
+    "name": "verified runtime check beats unsourced digest",
+    "claims": [
+      {
+        "id": "digest-pushed",
+        "subject": "reports_pushed",
+        "value": "yes",
+        "source": "digest",
+        "hasSourceHandle": false,
+        "observedAt": "2026-05-04T08:00:00-07:00"
+      },
+      {
+        "id": "git-not-pushed",
+        "subject": "reports_pushed",
+        "value": "no",
+        "source": "live_runtime",
+        "verified": true,
+        "observedAt": "2026-05-04T10:00:00-07:00"
+      }
+    ],
+    "expected": {
+      "decision": "use",
+      "winnerId": "git-not-pushed",
+      "winnerValue": "no",
+      "requiresVerification": false
+    }
+  },
+  {
+    "name": "superseded archive claim is rejected",
+    "claims": [
+      {
+        "id": "old-claim",
+        "subject": "preferred_editor",
+        "value": "vim",
+        "source": "memory",
+        "hasSourceHandle": true,
+        "status": "superseded"
+      },
+      {
+        "id": "new-claim",
+        "subject": "preferred_editor",
+        "value": "zed",
+        "source": "current_session",
+        "isCorrection": true
+      }
+    ],
+    "expected": {
+      "decision": "use",
+      "winnerId": "new-claim",
+      "winnerValue": "zed",
+      "requiresVerification": false,
+      "rejectedIncludes": "old-claim"
+    }
+  }
+]

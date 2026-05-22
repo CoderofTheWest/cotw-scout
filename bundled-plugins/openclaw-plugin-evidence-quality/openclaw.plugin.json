@@ -1,0 +1,33 @@
+{
+  "id": "evidence-quality",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Evidence Quality",
+  "version": "0.1.0",
+  "description": "Substrate-density evaluator. Computes structured evidence-quality assessments for entities, persons, topics, exchange-windows, and speakers. Used as a refuse-and-log gate before any LLM synthesis (contemplation, reconstruction, standing/crystallization metabolism). Closes the density axis of epistemic discipline; complements the trust-circle plugin's provenance axis.",
+  "main": "index.js",
+  "configSchema": {
+    "jsonSchema": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "thresholds": {
+          "type": "object",
+          "description": "Override sane defaults for refuse/low/medium/high cutoffs.",
+          "properties": {
+            "entity": { "type": "object" },
+            "person": { "type": "object" },
+            "exchangeWindow": { "type": "object" }
+          }
+        },
+        "noiseBlacklist": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Entity canonical_names that should never seed contemplation, regardless of mention_count. Hand-curated list of known extraction artifacts."
+        },
+        "logEvaluations": { "type": "boolean", "default": false }
+      }
+    }
+  }
+}

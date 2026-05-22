@@ -1,0 +1,6 @@
+{
+  "name": "openclaw-plugin-epistemic-proof-loop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js"
+}

@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "patternDetection": {
+    "enabled": true,
+    "minConfidence": 0.5
+  },
+  "synthesis": {
+    "enabled": true
+  },
+  "contextInjection": {
+    "enabled": true
+  },
+  "llm": {
+    "endpoint": "http://127.0.0.1:11434/v1/chat/completions",
+    "model": "glm-5:cloud",
+    "apiKey": null,
+    "format": null,
+    "temperature": 0.4,
+    "maxTokens": 1500,
+    "timeoutMs": 180000
+  },
+  "nightshift": {
+    "priority": 20
+  },
+  "reportThresholds": [1, 3, 5, 10]
+}

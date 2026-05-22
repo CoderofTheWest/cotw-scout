@@ -1,0 +1,30 @@
+{
+  "id": "threads",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Project Threads",
+  "description": "Injects active project context, decision constraints, and open directives from PROJECTS.md and DECISIONS.md. Sends project pulse via nightshift.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "projectsFile": { "type": ["string", "null"], "default": null },
+      "decisionsFile": { "type": ["string", "null"], "default": null },
+      "contextInjection": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean", "default": true },
+          "constraintWindowDays": { "type": "number", "default": 30 }
+        }
+      },
+      "pulse": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean", "default": true }
+        }
+      }
+    }
+  }
+}

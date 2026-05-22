@@ -1,0 +1,11 @@
+{
+  "name": "threads",
+  "version": "0.1.0",
+  "description": "Project context injection and pulse delivery from PROJECTS.md and DECISIONS.md",
+  "main": "index.js",
+  "openclaw": {
+    "extensions": ["./index.js"]
+  },
+  "keywords": ["openclaw", "plugin", "projects", "threads"],
+  "license": "MIT"
+}

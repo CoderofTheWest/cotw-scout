@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder Harness — Code of the West</title>
+<meta name="description" content="How COTW turns GPT 5.5 into a receipt-driven building, research, and proposal-only self-improvement harness.">
+<link rel="icon" href="images/cotw-logo.svg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Fira+Code:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #211B16;
+    --surface: #29241F;
+    --surface-deep: #161311;
+    --text: #F5EDE0;
+    --text-muted: rgba(245, 237, 224, 0.68);
+    --text-dim: rgba(245, 237, 224, 0.42);
+    --accent: #C9A763;
+    --accent-hover: #D4A76A;
+    --ink: #7190A6;
+    --word: #87A384;
+    --brand: #C8754B;
+    --border: rgba(245, 237, 224, 0.13);
+    --border-strong: rgba(245, 237, 224, 0.24);
+    --font-sans: 'Inter', -apple-system, sans-serif;
+    --font-serif: 'Merriweather', Georgia, serif;
+    --font-mono: 'Fira Code', 'SF Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    line-height: 1.6;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('images/stormy_field.PNG');
+    background-size: cover;
+    background-position: center 40%;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body > * { position: relative; z-index: 1; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 40px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(22, 19, 17, 0.82);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .nav-brand { display: flex; align-items: center; gap: 10px; }
+  .nav-brand img { height: 28px; filter: brightness(0) invert(0.9); }
+  .nav-brand span { font-family: var(--font-serif); font-size: 16px; }
+  .nav-links { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; }
+  .nav-links a { color: var(--text-muted); }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+
+  main {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 70px 40px 90px;
+  }
+
+  .eyebrow {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(34px, 5vw, 54px);
+    line-height: 1.1;
+    max-width: 820px;
+    margin-bottom: 22px;
+  }
+
+  .lead {
+    max-width: 760px;
+    color: var(--text-muted);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.78;
+    margin-bottom: 38px;
+  }
+
+  .signal {
+    border-left: 3px solid var(--accent);
+    background: rgba(201, 167, 99, 0.09);
+    border-radius: 8px;
+    padding: 22px 26px;
+    margin: 32px 0 52px;
+    color: var(--text);
+    font-family: var(--font-serif);
+  }
+
+  .loop {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin: 38px 0 62px;
+  }
+
+  .loop-step {
+    min-height: 150px;
+    border: 1px solid var(--border);
+    background: rgba(42, 36, 32, 0.72);
+    border-radius: 8px;
+    padding: 18px;
+  }
+
+  .loop-step small {
+    color: var(--ink);
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  .loop-step strong {
+    display: block;
+    color: var(--text);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .loop-step span {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  h2 {
+    font-family: var(--font-serif);
+    color: var(--accent);
+    font-size: 28px;
+    margin: 54px 0 12px;
+  }
+
+  .section-sub {
+    color: var(--text-muted);
+    max-width: 700px;
+    margin-bottom: 24px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    border: 1px solid var(--border);
+    background: rgba(42, 36, 32, 0.72);
+    border-radius: 8px;
+    padding: 24px;
+  }
+
+  .card h3 {
+    color: var(--text);
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .card p,
+  .card li {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .card ul { margin-left: 18px; margin-top: 10px; }
+
+  .badge {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(113, 144, 166, 0.18);
+    color: var(--ink);
+  }
+
+  code {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    background: rgba(201, 167, 99, 0.1);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .receipt-box {
+    border: 1px solid var(--border-strong);
+    background: rgba(22, 19, 17, 0.62);
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 18px;
+  }
+
+  .receipt-box p {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 34px 40px;
+    color: var(--text-dim);
+    text-align: center;
+    font-size: 12px;
+  }
+
+  @media (max-width: 850px) {
+    nav { align-items: flex-start; flex-direction: column; padding: 14px 20px; }
+    main { padding: 48px 20px 70px; }
+    .loop,
+    .grid { grid-template-columns: 1fr; }
+    .loop-step { min-height: auto; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">
+    <img src="images/cotw-logo.svg" alt="COTW">
+    <span>Builder Harness</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Overview</a>
+    <a href="memory-system-map.html">Memory Map</a>
+    <a href="memory-architecture.html">Architecture</a>
+    <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a>
+  </div>
+</nav>
+
+<main>
+  <div class="eyebrow">Coding, research, receipts, evolution</div>
+  <h1>The part that turns GPT 5.5 into a reliable builder.</h1>
+  <p class="lead">
+    COTW Companion is not just a memory layer for conversation. Code mode uses the same continuity substrate to keep a builder agent oriented across specs, files, experiments, restarts, and correction loops. It gives beginners a guided path and gives experienced builders a disciplined workbench.
+  </p>
+
+  <div class="signal">
+    The core difference: work is not trusted because the agent said it happened. Work is trusted when there is a receipt, a changed artifact, a test, a handoff, or a reviewable proposal attached to it.
+  </div>
+
+  <div class="loop">
+    <div class="loop-step"><small>1 / Shape</small><strong>Idea to PRD</strong><span>The PRD skill turns rough intent into objective, requirements, constraints, journeys, and verification criteria.</span></div>
+    <div class="loop-step"><small>2 / Work</small><strong>Threaded execution</strong><span>Code mode keeps the project in an infinite thread with handoffs, tool outputs, and current-state context.</span></div>
+    <div class="loop-step"><small>3 / Research</small><strong>Evidence loops</strong><span>Deep research and direct sprints force hypothesis, experiment, result, interpretation, and next move.</span></div>
+    <div class="loop-step"><small>4 / Verify</small><strong>Receipts and tests</strong><span>Claims route through files, diffs, screenshots, logs, tests, or explicit missing gates.</span></div>
+    <div class="loop-step"><small>5 / Improve</small><strong>Proposal-only evolution</strong><span>Repeated friction becomes scaffold proposal receipts. The agent can suggest changes, but not silently mutate itself.</span></div>
+  </div>
+
+  <h2>Why it helps novices</h2>
+  <p class="section-sub">The harness teaches project shape without requiring the user to already know how to run a software project.</p>
+  <div class="grid">
+    <div class="card">
+      <span class="badge">Guided structure</span>
+      <h3>The agent creates the missing rails.</h3>
+      <p>A rough idea becomes a project folder, a PRD, a plan, acceptance criteria, and a visible next step. The user does not have to know what a good spec looks like before the work can begin.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Continuity</span>
+      <h3>The work survives normal human interruption.</h3>
+      <p>Infinite threads, handoff files, attachment receipts, and source handles mean a project can survive restarts, context compaction, and parallel sessions without restarting from vibes.</p>
+    </div>
+  </div>
+
+  <h2>Why it helps experienced builders</h2>
+  <p class="section-sub">The same rails scale down to simplicity and up to serious work.</p>
+  <div class="grid">
+    <div class="card">
+      <span class="badge">Receipts</span>
+      <h3>Every serious claim gets an artifact trail.</h3>
+      <p>The harness favors diffs, tests, logs, screenshots, benchmark output, and sprint receipts over polished summaries. That makes review easier and narrows where a claim can be wrong.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Research</span>
+      <h3>Open-ended work becomes bounded sprints.</h3>
+      <p>Direct research sprints require a sharp question, a hunch, a bounded experiment or inspection, a readout, an interpretation, and a written receipt before continuing.</p>
+    </div>
+  </div>
+
+  <h2>Light recursive self-improvement</h2>
+  <p class="section-sub">COTW is careful about the word evolution. The model weights do not change, and the agent does not get blanket authority over its own scaffold.</p>
+  <div class="receipt-box">
+    <p><strong>What exists now:</strong> Code Evolution records Code mode sessions, tool calls, outcomes, scaffold version, and satisfaction/correction signals.</p>
+    <p><strong>What the proposal loop does:</strong> it can analyze repeated tool failures, long tool-call loops, and correction patterns, then write <code>scaffold_proposal</code> receipts into the evolution ledger.</p>
+    <p><strong>What it does not do by itself:</strong> mutate protected identity, change runtime configuration, grant tool authority, or inject new prompt rules without a separate operator-owned promotion lane.</p>
+  </div>
+
+  <h2>Free and hardened</h2>
+  <p class="section-sub">This matters because a lot of what people pay hosted memory systems for is already present locally here, with a stronger provenance story.</p>
+  <div class="grid">
+    <div class="card">
+      <span class="badge">Free substrate</span>
+      <h3>Local memory is not a metered service.</h3>
+      <p>SQLite, sqlite-vec, FTS5, Markdown identity files, handoffs, receipts, and evolution ledgers live on the machine. The expensive part is the reasoning model, not the continuity substrate.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Hardened by boring things</span>
+      <h3>Tests, gates, logs, and rollback paths.</h3>
+      <p>The system is intentionally less magical than it sounds: source handles, audit receipts, mutation gates, runtime health checks, and verification criteria keep the harness inspectable.</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>Code of the West &mdash; GPT 5.5 as the mind, COTW as the memory, identity, body, proof, and builder harness around it.</p>
+</footer>
+</body>
+</html>

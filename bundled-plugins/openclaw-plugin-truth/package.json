@@ -1,0 +1,10 @@
+{
+  "name": "openclaw-plugin-truth",
+  "version": "1.0.0",
+  "description": "Current state truth table that supersedes outdated memories",
+  "main": "index.js",
+  "peerDependencies": {
+    "better-sqlite3": ">=9.0.0",
+    "sqlite-vec": ">=0.1.0"
+  }
+}

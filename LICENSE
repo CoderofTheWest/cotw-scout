@@ -1,0 +1,39 @@
+# COTW Scout — License
+
+Copyright (c) 2026 Chris Hunt. All rights reserved.
+
+This software is proprietary and confidential. No license is granted by this
+file. The source code, documentation, and accompanying assets in this
+repository may not be copied, modified, distributed, sublicensed, sold, or
+used to create derivative works without prior written permission from the
+copyright holder.
+
+## Beta period
+
+During the beta period, use of this software by invited testers is governed
+by [BETA-LICENSE.md](BETA-LICENSE.md), which supersedes this file for the
+duration of the beta. On general availability, this file (or a successor
+explicitly named here) governs.
+
+## Trademarks
+
+"Code of the West", "COTW", and "Scout" are trademarks of Chris Hunt.
+See [TRADEMARK.md](TRADEMARK.md) for permitted and prohibited uses.
+
+## Attribution
+
+The framework on which this software is based is drawn from the published work
+*The Code of the West* by Chris Hunt (Andrews McMeel Publishing, distributed
+by Simon & Schuster). See [NOTICE.md](NOTICE.md).
+
+## No warranty
+
+This software is provided "as is", without warranty of any kind, express or
+implied. The copyright holder disclaims all liability arising from your use
+of the software. See [BETA-LICENSE.md](BETA-LICENSE.md) for the full warranty
+disclaimer applicable during the beta.
+
+## Inquiries
+
+For licensing inquiries, contact Chris Hunt via the project's official
+channels.

@@ -1,0 +1,99 @@
+Entries with full vectors: 106
+Entries with surprise values: 104
+
+=== State Space Energy Decomposition ===
+Mean internal energy:  16.538 (37.7%)
+Mean external energy:  27.376 (62.3%)
+
+=== Internal Feature Activity ===
+                     Feature  NonZero     Mean      Std      Max
+-----------------------------------------------------------------
+               entropy_total     72/106   0.2887   0.2922   1.1500
+                  correction     16/106   0.0604   0.1432   0.4000
+               novelConcepts     39/106   0.0877   0.1234   0.3000
+                   emotional     23/106   0.0651   0.1237   0.3000
+                     paradox     41/106   0.0774   0.0974   0.2000
+                qualityDecay      0/106   0.0000   0.0000   0.0000
+               recursiveMeta     36/106   0.0651   0.1031   0.4500
+            quietIntegration     20/106   0.0283   0.0587   0.1500
+                     quality     20/106  -0.0038   0.0643   0.1000
+                decision_old      0/106   0.0000   0.0000   0.0000
+                decision_new      0/106   0.0000   0.0000   0.0000
+         decision_divergence      0/106   0.0000   0.0000   0.0000
+                entropy_debt      5/106   0.0849   0.4148   3.0000
+              quality_rating     98/106   1.9623   0.6432   3.0000
+                tension_type     55/106   0.7642   0.8960   3.0000
+        self_reference_ratio     80/106   0.0346   0.0299   0.1100
+
+=== Latent Dimension Error Ranking ===
+Total mean surprise: 27.4701
+Rank  Dim    Mean SE  % Total    Cumul
+----------------------------------------
+   1   11     2.5229     9.2%     9.2%
+   2   63     1.2143     4.4%    13.6%
+   3   27     1.1619     4.2%    17.8%
+   4   50     1.0248     3.7%    21.6%
+   5   14     0.9552     3.5%    25.0%
+   6   57     0.7132     2.6%    27.6%
+   7   31     0.6745     2.5%    30.1%
+   8    8     0.6516     2.4%    32.5%
+   9   55     0.6364     2.3%    34.8%
+  10   43     0.6101     2.2%    37.0%
+  11   12     0.5989     2.2%    39.2%
+  12   32     0.5689     2.1%    41.3%
+  13   34     0.5668     2.1%    43.3%
+  14   29     0.5597     2.0%    45.4%
+  15   35     0.5411     2.0%    47.3%
+
+=== Systematic Prediction Bias ===
+ Dim       Bias  Direction
+------------------------------
+  11    +1.3187       over
+  63    -0.9926      under
+  27    +0.7982       over
+   8    +0.7076       over
+  31    -0.6490      under
+  55    +0.6433       over
+  50    -0.6396      under
+  57    -0.6351      under
+  12    +0.5863       over
+  52    +0.5839       over
+
+=== Feature-Error Correlation (empirical substrate divergence drivers) ===
+                     Feature Mean|corr|   Category
+-------------------------------------------------------
+             response_length     0.3577   EXTERNAL
+         user_question_marks     0.3443   EXTERNAL
+                     shannon     0.3153     BORDER
+        self_reference_ratio     0.3127   INTERNAL
+            question_density     0.2869   EXTERNAL
+                   emotional     0.2818   INTERNAL
+               entropy_total     0.2597   INTERNAL
+     response_to_input_ratio     0.2545   EXTERNAL
+      session_length_minutes     0.2448   EXTERNAL
+                 topic_shift     0.2414   EXTERNAL
+                  correction     0.2256   INTERNAL
+               novelConcepts     0.2099   INTERNAL
+            quietIntegration     0.2021   INTERNAL
+       turn_index_in_session     0.1968   EXTERNAL
+              quality_rating     0.1957   INTERNAL
+                     quality     0.1957   INTERNAL
+                     paradox     0.1864   INTERNAL
+                tension_type     0.1726   INTERNAL
+                entropy_debt     0.1716   INTERNAL
+                 user_length     0.1511   EXTERNAL
+               recursiveMeta     0.1410   INTERNAL
+                decision_new     0.0000   INTERNAL
+                decision_old     0.0000   INTERNAL
+                qualityDecay     0.0000   INTERNAL
+         decision_divergence     0.0000   INTERNAL
+
+=== SUBSTRATE DISTANCE SUMMARY ===
+Data points: 104
+Mean total surprise (frozen): 39.262
+Internal state energy: 37.7% of encoder input
+External context energy: 62.3% of encoder input
+Active internal features: 12/16
+Entropy detectors firing: YES
+
+✓ Sufficient internal feature activity for substrate comparison.

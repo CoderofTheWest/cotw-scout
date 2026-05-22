@@ -1,0 +1,4 @@
+{
+  "_doc": "Per-agent noise blacklist for evidence-quality gate. Add entity canonical_names that the graph extractor recurringly ghosts in YOUR corpus. Universal structural noise (length<4, code keywords) is handled by the plugin's default config — this file is for corpus-specific entries only. Append entries as you see them in gateway logs: '[Graph:<agent>] evidence gate refused N candidate gap(s): <ghost-name>(reason)'.",
+  "entries": []
+}

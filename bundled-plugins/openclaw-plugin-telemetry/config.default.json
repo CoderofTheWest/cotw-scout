@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "syncEndpoint": "",
+  "syncEnabled": false,
+  "syncSecret": "",
+  "nightshiftPriority": 5,
+  "retentionDays": 90,
+  "batchSize": 50
+}

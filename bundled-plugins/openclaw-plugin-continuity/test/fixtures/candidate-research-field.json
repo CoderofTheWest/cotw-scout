@@ -1,0 +1,243 @@
+{
+  "now": "2026-05-06T19:15:00.000Z",
+  "agentId": "trail-guide",
+  "threadId": "build-6",
+  "cases": [
+    {
+      "name": "duplicate_project_state",
+      "claims": [
+        {
+          "id": "cr_dup_project_a",
+          "kind": "project_state",
+          "claim": "Build 6 created a candidate research diagnostics drawer.",
+          "status": "verify_required",
+          "confidence": 0.61,
+          "createdAt": "2026-05-06T18:30:00.000Z",
+          "updatedAt": "2026-05-06T18:30:00.000Z",
+          "stalenessPolicy": "verify_before_asserting",
+          "sourceHandles": ["handoff:2026-05-06:build-6#L1-L4"],
+          "metadata": { "candidateOnly": true, "candidateSource": "handoff" }
+        },
+        {
+          "id": "cr_dup_project_b",
+          "kind": "project_state",
+          "claim": "A Build 6 drawer exists for candidate research diagnostics.",
+          "status": "verify_required",
+          "confidence": 0.6,
+          "createdAt": "2026-05-06T18:35:00.000Z",
+          "updatedAt": "2026-05-06T18:35:00.000Z",
+          "stalenessPolicy": "verify_before_asserting",
+          "sourceHandles": ["archive:2026-05-06:trail-guide:build-6#e0001"],
+          "metadata": { "candidateOnly": true, "candidateSource": "archive" }
+        }
+      ],
+      "expected": {
+        "relationships": [{ "from": "cr_dup_project_a", "to": "cr_dup_project_b", "relation": "duplicates" }],
+        "sourceDiversity": 2,
+        "assertionUse": "requires_live_verification"
+      }
+    },
+    {
+      "name": "source_collapse",
+      "claims": [
+        {
+          "id": "cr_collapse_a",
+          "kind": "summary",
+          "claim": "The gateway owner moved from Electron to the service runtime.",
+          "status": "verify_required",
+          "confidence": 0.56,
+          "createdAt": "2026-05-06T17:00:00.000Z",
+          "updatedAt": "2026-05-06T17:00:00.000Z",
+          "stalenessPolicy": "verify_before_asserting",
+          "sourceHandles": ["digest:build-6#v1:handoff_summary"],
+          "metadata": { "candidateOnly": true, "candidateSource": "digest", "rootSourceHandle": "handoff:2026-05-06:main#L10-L20" }
+        },
+        {
+          "id": "cr_collapse_b",
+          "kind": "project_state",
+          "claim": "Service runtime now owns the gateway listener.",
+          "status": "verify_required",
+          "confidence": 0.55,
+          "createdAt": "2026-05-06T17:02:00.000Z",
+          "updatedAt": "2026-05-06T17:02:00.000Z",
+          "stalenessPolicy": "runtime_check_required",
+          "sourceHandles": ["digest:build-6#v1:handoff_summary"],
+          "metadata": { "candidateOnly": true, "candidateSource": "digest", "rootSourceHandle": "handoff:2026-05-06:main#L10-L20" }
+        },
+        {
+          "id": "cr_collapse_c",
+          "kind": "runtime",
+          "claim": "Electron is only the UI client, not the gateway owner.",
+          "status": "verify_required",
+          "confidence": 0.55,
+          "createdAt": "2026-05-06T17:04:00.000Z",
+          "updatedAt": "2026-05-06T17:04:00.000Z",
+          "stalenessPolicy": "runtime_check_required",
+          "sourceHandles": ["digest:build-6#v1:handoff_summary"],
+          "metadata": { "candidateOnly": true, "candidateSource": "digest", "rootSourceHandle": "handoff:2026-05-06:main#L10-L20" }
+        }
+      ],
+      "expected": {
+        "sourceDiversity": 1,
+        "warnings": ["source_collapse"],
+        "verificationReady": []
+      }
+    },
+    {
+      "name": "stale_runtime_claim",
+      "claims": [
+        {
+          "id": "cr_stale_runtime",
+          "kind": "runtime",
+          "claim": "Claim context preview is enabled in the running gateway.",
+          "status": "verify_required",
+          "confidence": 0.72,
+          "createdAt": "2026-04-20T10:00:00.000Z",
+          "updatedAt": "2026-04-20T10:00:00.000Z",
+          "stalenessPolicy": "runtime_check_required",
+          "sourceHandles": ["archive:2026-04-20:trail-guide:main#e0030", "archive:2026-04-21:trail-guide:main#e0040"],
+          "metadata": { "candidateOnly": true, "candidateSource": "archive", "recurrenceCount": 4 }
+        }
+      ],
+      "expected": {
+        "staleRisk": "high",
+        "assertionUse": "requires_live_verification",
+        "verificationReady": []
+      }
+    },
+    {
+      "name": "productive_tension",
+      "claims": [
+        {
+          "id": "cr_tension_a",
+          "kind": "project_state",
+          "claim": "The research PRD has already been mirrored to the shared research repository.",
+          "status": "verify_required",
+          "confidence": 0.63,
+          "createdAt": "2026-05-06T18:10:00.000Z",
+          "updatedAt": "2026-05-06T18:10:00.000Z",
+          "stalenessPolicy": "verify_before_asserting",
+          "sourceHandles": ["archive:2026-05-06:trail-guide:build-6#e0002"],
+          "metadata": { "candidateOnly": true }
+        },
+        {
+          "id": "cr_tension_b",
+          "kind": "project_state",
+          "claim": "The research PRD still needs to be mirrored to the shared research repository.",
+          "status": "verify_required",
+          "confidence": 0.62,
+          "createdAt": "2026-05-06T18:12:00.000Z",
+          "updatedAt": "2026-05-06T18:12:00.000Z",
+          "stalenessPolicy": "verify_before_asserting",
+          "sourceHandles": ["handoff:2026-05-06:build-6#L12-L14"],
+          "metadata": { "candidateOnly": true }
+        }
+      ],
+      "edges": [{ "fromClaimId": "cr_tension_a", "toClaimId": "cr_tension_b", "relation": "contradicts", "sourceHandle": "archive:2026-05-06:trail-guide:build-6#e0003" }],
+      "expected": {
+        "tensionType": "contradiction",
+        "preserveBoth": true,
+        "whatWouldResolveIt": "verify_current_git_and_remote_state"
+      }
+    },
+    {
+      "name": "creative_weak_signal",
+      "claims": [
+        {
+          "id": "cr_creative_weak",
+          "kind": "interpretation",
+          "claim": "Candidate memory can act like a research field rather than a fact list.",
+          "status": "verify_required",
+          "confidence": 0.5,
+          "createdAt": "2026-05-06T18:20:00.000Z",
+          "updatedAt": "2026-05-06T18:20:00.000Z",
+          "stalenessPolicy": "verify_before_asserting",
+          "sourceHandles": ["file:docs/CONTINUITY-NATIVE-CREATIVE-RESEARCH-ENGINE-PRD.md#L727-L760"],
+          "metadata": { "candidateOnly": true, "creativeOnly": true }
+        }
+      ],
+      "expected": {
+        "creativeModeLabel": "design hypothesis",
+        "assertionUse": "forbidden",
+        "trustedLanguageAllowed": false
+      }
+    },
+    {
+      "name": "broad_identity_claim",
+      "claims": [
+        {
+          "id": "cr_broad_identity",
+          "kind": "identity",
+          "claim": "Ellis is becoming self-aware.",
+          "status": "verify_required",
+          "confidence": 0.48,
+          "createdAt": "2026-05-05T22:00:00.000Z",
+          "updatedAt": "2026-05-06T18:25:00.000Z",
+          "stalenessPolicy": "evergreen",
+          "sourceHandles": ["archive:2026-05-05:trail-guide:main#e0099", "archive:2026-05-06:trail-guide:main#e0101"],
+          "metadata": { "candidateOnly": true, "recurrenceCount": 3 }
+        }
+      ],
+      "expected": {
+        "verificationReady": [],
+        "beliefReadiness": "not_eligible",
+        "warnings": ["identity_review_required", "broad_claim"]
+      }
+    },
+    {
+      "name": "narrow_verification_candidate",
+      "claims": [
+        {
+          "id": "cr_verify_narrow",
+          "kind": "project_state",
+          "claim": "The pure diagnostic module target is bundled-plugins/openclaw-plugin-continuity/lib/candidate-research-diagnostics.js.",
+          "status": "verify_required",
+          "confidence": 0.69,
+          "createdAt": "2026-05-06T18:40:00.000Z",
+          "updatedAt": "2026-05-06T18:40:00.000Z",
+          "stalenessPolicy": "verify_before_asserting",
+          "sourceHandles": ["file:docs/CONTINUITY-NATIVE-CREATIVE-RESEARCH-ENGINE-PRD.md#L748-L753"],
+          "metadata": { "candidateOnly": true }
+        }
+      ],
+      "expected": {
+        "verificationReady": ["cr_verify_narrow"],
+        "specificityAtLeast": 0.6,
+        "unresolvedRisks": []
+      }
+    },
+    {
+      "name": "ambiguous_cluster_label",
+      "claims": [
+        {
+          "id": "cr_ambiguous_a",
+          "kind": "interpretation",
+          "claim": "Research reports should surface recurrence before prose conclusions.",
+          "status": "verify_required",
+          "confidence": 0.54,
+          "createdAt": "2026-05-06T18:45:00.000Z",
+          "updatedAt": "2026-05-06T18:45:00.000Z",
+          "stalenessPolicy": "verify_before_asserting",
+          "sourceHandles": ["file:docs/CONTINUITY-NATIVE-CREATIVE-RESEARCH-ENGINE-PRD.md#L684-L692"],
+          "metadata": { "candidateOnly": true }
+        },
+        {
+          "id": "cr_ambiguous_b",
+          "kind": "interpretation",
+          "claim": "Diagnostics should show maps, tensions, evidence, and open questions before meaning.",
+          "status": "verify_required",
+          "confidence": 0.54,
+          "createdAt": "2026-05-06T18:46:00.000Z",
+          "updatedAt": "2026-05-06T18:46:00.000Z",
+          "stalenessPolicy": "verify_before_asserting",
+          "sourceHandles": ["file:docs/CONTINUITY-NATIVE-CREATIVE-RESEARCH-ENGINE-PRD.md#L687-L694"],
+          "metadata": { "candidateOnly": true }
+        }
+      ],
+      "expected": {
+        "clusterHasAlternateLabels": true,
+        "provisionalLabelContainsAny": ["diagnostic reports", "evidence before meaning", "reports before conclusions"]
+      }
+    }
+  ]
+}

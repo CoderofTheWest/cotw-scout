@@ -1,0 +1,7 @@
+{
+  "name": "openclaw-plugin-planmode",
+  "version": "0.1.0",
+  "description": "Lightweight plan mode for OpenClaw — plan persistence, approval detection, active plan context injection",
+  "main": "index.js",
+  "private": true
+}

@@ -1,0 +1,34 @@
+{
+  "id": "cognitive-dynamics",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Cognitive Dynamics (JEPA)",
+  "description": "Learned cognitive state predictor. Encodes turn-level state into 64-dim latent space, predicts next state, computes surprise (prediction error) as a real-time anomaly metric.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable cognitive dynamics tracking"
+      },
+      "surpriseThreshold": {
+        "type": "number",
+        "default": 2.0,
+        "description": "Surprise value above which to flag a turn"
+      },
+      "logLatentVectors": {
+        "type": "boolean",
+        "default": false,
+        "description": "Include full 64-dim latent vectors in log"
+      },
+      "agentFilter": {
+        "type": "string",
+        "default": "",
+        "description": "Only track this agent ID (empty = track all)"
+      }
+    }
+  }
+}

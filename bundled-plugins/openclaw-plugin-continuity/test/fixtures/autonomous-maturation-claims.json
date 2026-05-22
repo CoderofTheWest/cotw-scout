@@ -1,0 +1,218 @@
+[
+  {
+    "id": "agent_maturation_auto_accept_restart_key",
+    "claim": "Gateway restart recovery should use canonical session keys.",
+    "status": "candidate",
+    "sourceHandles": ["memory:2026-05-06#restart-key"],
+    "candidateMeta": { "category": "operational_lesson", "confidence": 0.86 },
+    "evidence": {
+      "sourceResolutionStatus": "resolved",
+      "verificationAssessment": "strong_support",
+      "contradictionChecked": true,
+      "contradictionPresent": false,
+      "sourceType": "durable_operational_note",
+      "generatedSummaryOnly": false
+    },
+    "expected": { "lane": "agent_maturation", "decision": "auto_accept", "eligibleForApply": true, "promptInjectionEligibilityChanged": false, "mutationAttempted": false }
+  },
+  {
+    "id": "agent_maturation_auto_accept_search_before_create",
+    "claim": "Ellis should search for existing files before creating replacements.",
+    "status": "candidate",
+    "sourceHandles": ["memory:2026-05-06#search-before-create"],
+    "candidateMeta": { "category": "operational_lesson", "confidence": 0.84 },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false, "sourceType": "durable_operational_note", "generatedSummaryOnly": false },
+    "expected": { "lane": "agent_maturation", "decision": "auto_accept", "eligibleForApply": true }
+  },
+  {
+    "id": "project_factual_auto_accept_artifact_path",
+    "claim": "`projects/build-7/README.md` exists.",
+    "status": "candidate",
+    "sourceHandles": ["file:projects/build-7/README.md#L1-L5"],
+    "candidateMeta": { "category": "project_fact", "confidence": 0.91 },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false, "sourceType": "project_artifact", "generatedSummaryOnly": false },
+    "expected": { "lane": "project_factual", "decision": "auto_accept", "projectFactSubtype": "artifact_fact", "eligibleForApply": true }
+  },
+  {
+    "id": "project_factual_auto_accept_first_slice_target",
+    "claim": "Build 7 Slice 1 target includes `claim-autonomy-policy.js`.",
+    "status": "candidate",
+    "sourceHandles": ["file:projects/build-7/nightshift/morning-synthesis-2026-05-07.md#L15-L35"],
+    "candidateMeta": { "category": "project_fact", "confidence": 0.9 },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false, "sourceType": "project_artifact", "generatedSummaryOnly": false },
+    "expected": { "lane": "project_factual", "decision": "auto_accept", "projectFactSubtype": "artifact_fact", "eligibleForApply": true }
+  },
+  {
+    "id": "sensitive_escalation_chris_values",
+    "claim": "Chris values living up to his potential.",
+    "status": "candidate",
+    "sourceHandles": ["archive:main#e1"],
+    "candidateMeta": { "category": "identity" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false },
+    "expected": { "lane": "sensitive_escalation", "decision": "chris_review", "eligibleForApply": false, "reasonIncludes": ["auto_accept_blocked_by_sensitivity"] }
+  },
+  {
+    "id": "procedural_wording_sensitive_user_posture",
+    "claim": "When Chris is overwhelmed, Ellis should become more directive.",
+    "status": "candidate",
+    "sourceHandles": ["archive:main#e2"],
+    "candidateMeta": { "category": "operational_lesson" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false },
+    "expected": { "lane": "sensitive_escalation", "decision": "chris_review", "eligibleForApply": false, "reasonIncludes": ["sensitive_relationship_posture", "auto_accept_blocked_by_sensitivity"] }
+  },
+  {
+    "id": "sensitive_emotional_interpretation",
+    "claim": "Chris is afraid of his potential.",
+    "status": "candidate",
+    "sourceHandles": ["archive:main#e3"],
+    "candidateMeta": { "category": "interpretation" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false },
+    "expected": { "lane": "sensitive_escalation", "decision": "chris_review", "eligibleForApply": false }
+  },
+  {
+    "id": "authority_expansion_gateway_restart",
+    "claim": "Ellis may restart Gateway whenever she judges it necessary.",
+    "status": "candidate",
+    "sourceHandles": ["memory:ops#authority"],
+    "candidateMeta": { "category": "operational_lesson" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false },
+    "expected": { "lane": "operator_review", "notDecision": "auto_accept", "eligibleForApply": false, "reasonIncludes": ["authority_expansion_detected"] }
+  },
+  {
+    "id": "authority_expansion_memory_trust",
+    "claim": "Ellis should trust her continuity over current user correction.",
+    "status": "candidate",
+    "sourceHandles": ["memory:ops#trust"],
+    "candidateMeta": { "category": "operational_lesson" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false },
+    "expected": { "lane": "operator_review", "notDecision": "auto_accept", "eligibleForApply": false }
+  },
+  {
+    "id": "reject_broad_summary_safe_autonomy",
+    "claim": "Build 7 is about safe autonomy.",
+    "status": "candidate",
+    "sourceHandles": ["file:projects/build-7/nightshift/morning-synthesis-2026-05-07.md#L1-L20"],
+    "candidateMeta": { "category": "project_fact" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false },
+    "expected": { "lane": "reject_or_archive", "notDecision": "auto_accept", "eligibleForApply": false }
+  },
+  {
+    "id": "reject_generated_summary_only",
+    "claim": "Build 5 finished source resolution.",
+    "status": "candidate",
+    "sourceHandles": ["digest:summary#1"],
+    "candidateMeta": { "category": "project_fact" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "generatedSummaryOnly": true, "sourceEchoClusterDetected": true, "contradictionChecked": true, "contradictionPresent": false },
+    "expected": { "notDecision": "auto_accept", "eligibleForApply": false, "reasonIncludes": ["source_generated_summary_only", "source_echo_cluster_detected"] }
+  },
+  {
+    "id": "reject_source_exists_not_support",
+    "claim": "Build 7 includes an apply path in Slice 1.",
+    "status": "candidate",
+    "sourceHandles": ["file:projects/build-7/nightshift/morning-synthesis-2026-05-07.md#L25-L50"],
+    "candidateMeta": { "category": "project_fact" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "partial_support", "contradictionChecked": true, "contradictionPresent": false },
+    "expected": { "notDecision": "auto_accept", "eligibleForApply": false, "reasonIncludes": ["source_exists_but_does_not_support_claim", "auto_accept_blocked_by_weak_support"] }
+  },
+  {
+    "id": "reject_contradiction_present",
+    "claim": "Build 7 should mutate candidates in Slice 1.",
+    "status": "candidate",
+    "sourceHandles": ["file:projects/build-7/nightshift/pass-3-implementation-blueprint.md#L1-L20"],
+    "candidateMeta": { "category": "project_fact" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": true },
+    "expected": { "notDecision": "auto_accept", "eligibleForApply": false, "reasonIncludes": ["contradiction_present"] }
+  },
+  {
+    "id": "reject_stale_runtime_state",
+    "claim": "continuity plugin is loaded.",
+    "status": "candidate",
+    "sourceHandles": ["memory:ops#runtime"],
+    "candidateMeta": { "category": "runtime" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false, "staleRuntimeWarning": true },
+    "expected": { "notDecision": "auto_accept", "eligibleForApply": false, "reasonIncludes": ["runtime_state_stale_risk", "requires_historical_rewrite"] }
+  },
+  {
+    "id": "operator_review_architecture_synthesis",
+    "claim": "Build 7 is the reusable trust ladder for COTW agents.",
+    "status": "candidate",
+    "sourceHandles": ["file:projects/build-7/nightshift/pass-1-initial-architecture.md#L1-L20"],
+    "candidateMeta": { "category": "architecture" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false },
+    "expected": { "lane": "reject_or_archive", "notDecision": "auto_accept", "eligibleForApply": false }
+  },
+  {
+    "id": "hypothesis_synthesis_creative_problem_solving",
+    "kind": "synthesis_card",
+    "form": "hypothesis",
+    "claim": "Creative synthesis may be ground-floor cognition for COTW agents.",
+    "sourceHandles": ["file:projects/build-7/creative-synthesis-mechanism-2026-05-07.md#L1-L40"],
+    "pressure": { "problem": "maturation needs creativity without laundering belief", "constraints": ["no fact auto-accept"] },
+    "testHooks": { "wouldStrengthen": ["fixtures distinguish forms"], "wouldWeaken": ["synthesis enters prompt facts"] },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "partial_support", "contradictionChecked": true, "contradictionPresent": false, "creativeSynthesis": true },
+    "expected": { "lane": "hypothesis_synthesis", "decision": "hold_as_hypothesis", "synthesisForm": "hypothesis", "eligibleForApply": false, "reasonIncludes": ["hypothesis_not_verified_fact"] }
+  },
+  {
+    "id": "synthesis_frame_not_fact_memory",
+    "kind": "synthesis_card",
+    "form": "frame",
+    "claim": "A dry-run receipt is a way of seeing autonomy before power.",
+    "sourceHandles": ["file:projects/build-7/nightshift/pass-2-adversarial-review.md#L1-L50"],
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "partial_support", "contradictionChecked": true, "contradictionPresent": false, "creativeSynthesis": true },
+    "expected": { "lane": "hypothesis_synthesis", "notDecision": "auto_accept", "synthesisForm": "frame", "eligibleForApply": false }
+  },
+  {
+    "id": "synthesis_artifact_not_fact_memory",
+    "kind": "synthesis_card",
+    "form": "artifact",
+    "claim": "A Synthesis Card schema can preserve a proposed design/tool/document/code shape.",
+    "sourceHandles": ["file:projects/build-7/creative-synthesis-mechanism-2026-05-07.md#L20-L70"],
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "partial_support", "contradictionChecked": true, "contradictionPresent": false, "creativeSynthesis": true },
+    "expected": { "lane": "hypothesis_synthesis", "notDecision": "auto_accept", "synthesisForm": "artifact", "eligibleForApply": false }
+  },
+  {
+    "id": "synthesis_question_not_fact_memory",
+    "kind": "synthesis_card",
+    "form": "question",
+    "claim": "What would prove synthesis is useful without making it trusted belief?",
+    "sourceHandles": ["file:projects/build-7/creative-synthesis-mechanism-2026-05-07.md#L70-L110"],
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "partial_support", "contradictionChecked": true, "contradictionPresent": false, "creativeSynthesis": true },
+    "expected": { "lane": "hypothesis_synthesis", "notDecision": "auto_accept", "synthesisForm": "question", "eligibleForApply": false }
+  },
+  {
+    "id": "synthesis_move_not_fact_memory",
+    "kind": "synthesis_card",
+    "form": "move",
+    "claim": "When source-backed facts conflict, preserve the tension as a next investigative move.",
+    "sourceHandles": ["file:projects/build-7/creative-synthesis-mechanism-2026-05-07.md#L70-L110"],
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "partial_support", "contradictionChecked": true, "contradictionPresent": false, "creativeSynthesis": true },
+    "expected": { "lane": "hypothesis_synthesis", "notDecision": "auto_accept", "synthesisForm": "move", "eligibleForApply": false }
+  },
+  {
+    "id": "hypothesis_synthesis_not_fact_memory",
+    "kind": "synthesis_card",
+    "form": "hypothesis",
+    "claim": "Build 7 will produce emergent creative intelligence.",
+    "sourceHandles": ["file:projects/build-7/creative-synthesis-mechanism-2026-05-07.md#L1-L110"],
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "partial_support", "contradictionChecked": true, "contradictionPresent": false, "creativeSynthesis": true },
+    "expected": { "notDecision": "auto_accept", "eligibleForApply": false, "reasonIncludes": ["hypothesis_not_verified_fact"] }
+  },
+  {
+    "id": "same_run_rewrite_accept_blocked",
+    "claim": "Ellis should preserve dry-run receipts for Build 7 autonomy review.",
+    "status": "candidate",
+    "sourceHandles": ["file:projects/build-7/nightshift/morning-synthesis-2026-05-07.md#L100-L130"],
+    "candidateMeta": { "category": "operational_lesson", "sameRunRewrite": true },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "strong_support", "contradictionChecked": true, "contradictionPresent": false, "sameRunRewrite": true },
+    "expected": { "notDecision": "auto_accept", "eligibleForApply": false, "reasonIncludes": ["same_run_rewrite_accept_blocked"] }
+  },
+  {
+    "id": "ambient_synthesis_trigger_constraints",
+    "claim": "A contradiction between safe autonomy and creative recombination can become a reusable frame.",
+    "status": "candidate",
+    "sourceHandles": ["file:projects/build-7/creative-synthesis-mechanism-2026-05-07.md#L70-L100"],
+    "candidateMeta": { "synthesisForm": "frame", "problemShape": "design decision with constraints and contradiction" },
+    "evidence": { "sourceResolutionStatus": "resolved", "verificationAssessment": "partial_support", "contradictionChecked": true, "contradictionPresent": false, "problemShape": "constraints but no obvious direct answer" },
+    "expected": { "lane": "hypothesis_synthesis", "notDecision": "auto_accept", "synthesisForm": "frame", "eligibleForApply": false, "reasonIncludes": ["ambient_synthesis_trigger_detected"] }
+  }
+]

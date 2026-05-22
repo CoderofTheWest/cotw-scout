@@ -1,0 +1,16 @@
+{
+  "name": "graph",
+  "version": "0.1.0",
+  "description": "Knowledge graph plugin for OpenClaw — entity extraction, triple storage, and graph-based retrieval",
+  "main": "index.js",
+  "openclaw": {
+    "extensions": ["./index.js"]
+  },
+  "keywords": ["openclaw", "plugin", "knowledge-graph", "entity-extraction", "NER"],
+  "author": "Chris Hunt",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "compromise": "^14.14.0"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "crystallization",
+  "version": "0.1.0",
+  "description": "Converts long-standing growth vectors into permanent character traits through three-gate conjunction: time, principle alignment, and human review.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "crystallization",
+    "traits",
+    "identity",
+    "character",
+    "growth-vectors"
+  ],
+  "author": "Chris Hunt & Clint",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "openclaw": {
+    "extensions": ["./index.js"]
+  },
+  "files": [
+    "index.js",
+    "openclaw.plugin.json",
+    "config.default.json",
+    "lib/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CoderofTheWest/openclaw-plugin-crystallization"
+  }
+}

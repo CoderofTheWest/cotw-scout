@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COTW Memory &amp; Continuity System — Architecture Map</title>
+<link rel="icon" href="images/cotw-logo.svg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #3D2914;
+    --surface: #2A2420;
+    --surface-raised: #342A22;
+    --surface-deep: #1E1A16;
+    --text: #F5EDE0;
+    --text-muted: rgba(245, 237, 224, 0.65);
+    --text-dim: rgba(245, 237, 224, 0.40);
+    --accent: #C9A763;
+    --accent-dim: rgba(201, 167, 99, 0.15);
+    --dusty: #8B7355;
+    --courage: #C9A763;
+    --word: #7C8B6F;
+    --brand: #D4A76A;
+    --border: rgba(245, 237, 224, 0.12);
+    --font-sans: 'Inter', -apple-system, sans-serif;
+    --font-serif: 'Merriweather', Georgia, serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    padding: 40px;
+    line-height: 1.5;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('images/stormy_field.PNG');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.33;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body > * { position: relative; z-index: 1; }
+
+  h1 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    color: var(--accent);
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+    font-style: italic;
+  }
+
+  h2 {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Layout ── */
+  .map {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .column { display: flex; flex-direction: column; gap: 16px; }
+  .column.center { gap: 20px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .badge {
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-core { background: rgba(201, 167, 99, 0.2); color: var(--accent); }
+  .badge-auto { background: rgba(124, 139, 111, 0.2); color: var(--word); }
+  .badge-gate { background: rgba(212, 167, 106, 0.2); color: var(--brand); }
+  .badge-store { background: rgba(139, 115, 85, 0.2); color: var(--dusty); }
+
+  .card-body {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .card-body strong { color: var(--text); font-weight: 500; }
+
+  .card-list {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0;
+  }
+
+  .card-list li {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 3px 0;
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .card-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--dusty);
+  }
+
+  /* ── Flow connectors ── */
+  .flow-card {
+    background: var(--surface-deep);
+    border: 1px solid rgba(201, 167, 99, 0.2);
+    border-left: 3px solid var(--accent);
+  }
+
+  .seal-card {
+    border: 1px solid rgba(124, 139, 111, 0.25);
+    border-left: 3px solid var(--word);
+    background: var(--surface-deep);
+  }
+
+  .identity-card {
+    border: 1px solid rgba(212, 167, 106, 0.2);
+    border-left: 3px solid var(--brand);
+  }
+
+  /* ── Pipeline visualization ── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 10px 0;
+  }
+
+  .pipeline-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-left: 2px solid var(--dusty);
+    margin-left: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    position: relative;
+  }
+
+  .pipeline-step::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--accent);
+  }
+
+  .pipeline-step:last-child { border-left-color: transparent; }
+
+  .pipeline-step .step-label {
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 100px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Comparison table ── */
+  .compare-section {
+    grid-column: 1 / -1;
+    margin-top: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 8px 12px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  td:first-child { color: var(--text); font-weight: 500; }
+
+  tr:last-child td { border-bottom: none; }
+
+  .highlight-cell { color: var(--accent); font-weight: 500; }
+
+  /* ── Fullwidth sections ── */
+  .fullwidth {
+    grid-column: 1 / -1;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+  }
+
+  .stat {
+    background: var(--surface-deep);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    flex: 1;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: var(--font-serif);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  .footer {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px 0 0;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h1>Memory &amp; Continuity System</h1>
+<p class="subtitle">Code of the West Agent Architecture &mdash; How an agent remembers, learns, and grows</p>
+
+<div class="map">
+
+  <!-- ═══════════ LEFT COLUMN: Storage Layer ═══════════ -->
+  <div class="column" id="storage-layer">
+    <h2>Storage Layer</h2>
+
+    <div class="card">
+      <div class="card-title">Continuity Database <span class="badge badge-store">SQLite-vec</span></div>
+      <div class="card-body">
+        The core memory store. Every conversation exchange is paired (user + agent), embedded as a 384-dimensional vector, and indexed for both semantic and keyword search.
+        <ul class="card-list">
+          <li><strong>exchanges</strong> &mdash; paired user/agent turns with timestamps, topics, <strong>thread_id</strong></li>
+          <li><strong>vec_exchanges</strong> &mdash; 384-dim embeddings (Xenova/all-MiniLM-L6-v2)</li>
+          <li><strong>fts_exchanges</strong> &mdash; FTS5 full-text with porter stemmer</li>
+          <li><strong>knowledge_entries</strong> &mdash; extracted workspace facts with supersession tracking</li>
+          <li><strong>summaries</strong> &mdash; DAG-structured compression (daily &rarr; weekly &rarr; monthly), thread-scoped</li>
+          <li><strong>topic_hierarchy</strong> &mdash; co-occurrence tracking across sessions</li>
+          <li><strong>sessions</strong> &mdash; conversation sessions with auto-generated titles</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Graph Database <span class="badge badge-store">SQLite</span></div>
+      <div class="card-body">
+        Entity-relationship knowledge graph with temporal sourcing.
+        <ul class="card-list">
+          <li><strong>triples</strong> &mdash; subject/predicate/object with confidence + source exchange</li>
+          <li><strong>entities</strong> &mdash; canonical names, types, aliases, mention counts</li>
+          <li><strong>cooccurrences</strong> &mdash; entity co-occurrence cache for pattern discovery</li>
+          <li><strong>meta_patterns</strong> &mdash; discovered traversal patterns with yield scores</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Daily Archives <span class="badge badge-store">JSON</span></div>
+      <div class="card-body">
+        Raw verbatim conversation records, one file per day. The ground truth that indexes are built from. Never modified after write. Deduplicated on archive.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Session Handoff <span class="badge badge-store">Markdown</span></div>
+      <div class="card-body">
+        Written on every <code>agent_end</code>. Consumed on next <code>session_start</code>. The bridge between sessions. Contains key topics, temporal markers, and an <strong>Open Threads</strong> section &mdash; regex-extracted commitments, TODOs, and investigations from conversation + scan of active project manifests (up to 7 threads).
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Thread Handoffs <span class="badge badge-store">Markdown</span></div>
+      <div class="card-body">
+        Persistent per-thread handoff files &mdash; <strong>overwritten on each write, never deleted after read</strong> (unlike session handoffs which are consumed). Each thread maintains its own handoff with compaction count in the header. On thread re-entry, an <strong>LLM warm start</strong> synthesizes the handoff into natural prose instead of raw template injection.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Source-Addressable Memory <span class="badge badge-core">Provenance</span></div>
+      <div class="card-body">
+        A separate provenance layer over raw conversational material. Atomic <strong>claim records</strong> are produced with explicit <strong>source handles</strong>, recording where each remembered fact came from.
+        <ul class="card-list">
+          <li><strong>Candidate vs. verified</strong> &mdash; every claim begins as <code>candidateOnly</code>; only verified claims reach the trusted prompt context.</li>
+          <li><strong>Verified-claim injection gate</strong> &mdash; the runtime safety boundary. Candidate-only claims are silently excluded from live injection regardless of weight or recurrence.</li>
+          <li><strong>Read-only source verification</strong> &mdash; verified claims can be re-checked against their source on demand; reports drift, never mutates.</li>
+          <li><strong>Modes</strong> &mdash; <code>observe</code> (record only), <code>diagnostic</code> (record + report), <code>enforce</code> (verified eligible for live injection). Mode transitions are operator-gated.</li>
+        </ul>
+        Currently in <strong>observe</strong> by default; diagnostic activations are applied and rolled back through the bounded operator workflow.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Attachment Receipts <span class="badge badge-core">Files + Vision</span></div>
+      <div class="card-body">
+        Images and documents attached in chat get durable evidence handles without duplicating the user's local files by default.
+        <ul class="card-list">
+          <li><strong>attachment_receipts</strong> &mdash; stable <code>att_...</code> id, kind, filename, MIME type, size, SHA-256, source path, source status, text excerpt, observation excerpt</li>
+          <li><strong>attachment_receipt_turns</strong> &mdash; links receipts to thread, session, project, and turn so recent project attachments can reappear as compact handles</li>
+          <li><strong>Path + hash verification</strong> &mdash; source files are checked when present; moved or modified files become explicit verification gaps</li>
+          <li><strong>Prompt discipline</strong> &mdash; current attachments include payload + receipt; later turns carry receipts, not pixels or full documents</li>
+        </ul>
+        This preserves the difference between "the model saw this now" and "the agent remembers a receipt later."
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CENTER COLUMN: Processing Pipeline ═══════════ -->
+  <div class="column center">
+    <h2>Processing Pipeline</h2>
+
+    <div class="card flow-card">
+      <div class="card-title">Agent Integration Spine <span class="badge badge-gate">Integration</span></div>
+      <div class="card-body">
+        The integration discipline above storage, processing, and identity. Five canonical packets &mdash; <strong>state_record</strong>, <strong>responsibility_lease</strong>, <strong>governor_decision</strong>, <strong>outcome_event</strong>, <strong>maturation_candidate</strong> &mdash; let existing stores cooperate without collapsing into one truth pile.
+        <ul class="card-list">
+          <li><strong>Read-only by construction</strong> &mdash; classifies, surfaces receipts, proposes candidates; does not mutate runtime state.</li>
+          <li><strong>Graded modes</strong> &mdash; proceed / verify / ask / approve / defer / refuse / pause-recover. Refusal is one mode, not the default.</li>
+          <li><strong>Consumer contracts</strong> &mdash; context injection, planning, tool execution, memory promotion, UI review each declare eligibility separately.</li>
+          <li><strong>Authority &ne; capability</strong> &mdash; visible tool, retrieved memory, successful outcome, candidate proposal: none of these are authorization.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card flow-card">
+      <div class="card-title">Infinite Threads <span class="badge badge-core">Scoping</span></div>
+      <div class="card-body">
+        Thread = persistent project scope (survives restarts). Session = ephemeral execution context (disposable). Threads and modes are orthogonal &mdash; a thread can span Chat, Code, and Booth.
+        <ul class="card-list">
+          <li><strong>Thread-scoped storage</strong> &mdash; thread_id flows from GUI &rarr; plugin &rarr; all storage layers (exchanges, summaries, archives, knowledge)</li>
+          <li><strong>Thread-boosted retrieval</strong> &mdash; 80% RRF boost for same-thread results</li>
+          <li><strong>LLM warm start</strong> &mdash; synthesizes thread handoff into natural prose on re-entry (not raw template)</li>
+          <li><strong>Consolidation</strong> &mdash; after 5 compactions, force session restart to rebuild from crystallized state</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card flow-card" id="retrieval-fusion">
+      <div class="card-title">Retrieval: 4-Way RRF Fusion <span class="badge badge-core">Core</span></div>
+      <div class="card-body">
+        Every query retrieves through four parallel paths, fused with Reciprocal Rank Fusion:
+        <ul class="card-list">
+          <li><strong>Semantic</strong> &mdash; sqlite-vec MATCH on 384-dim embeddings (weight: 0.8)</li>
+          <li><strong>Keyword</strong> &mdash; FTS5 BM25 with sanitized query terms (weight: 0.15)</li>
+          <li><strong>Temporal</strong> &mdash; exponential decay, 14-day half-life (weight: 0.15)</li>
+          <li><strong>Graph</strong> &mdash; multi-hop traversal with confidence decay per hop</li>
+          <li><strong>Thread boost</strong> &mdash; 80% RRF score boost for results matching active thread</li>
+        </ul>
+        <strong>Adaptive thresholds:</strong> Sparse corpus adjustment relaxes distance threshold to 1.3 when &lt; 2,000 exchanges. As corpus grows, natural embedding density makes this irrelevant.
+        <br><strong>Proper noun injection:</strong> If the user mentions a named entity and results contain it, inject regardless of distance score. Catches capitalized sequences, names with articles, mid-sentence proper nouns.
+      </div>
+    </div>
+
+    <div class="card seal-card">
+      <div class="card-title">SEAL Metabolism <span class="badge badge-auto">Autonomous</span></div>
+      <div class="card-body">
+        The living pipeline. Conversation &rarr; extract &rarr; settle &rarr; crystallize. Not storage &mdash; growth.
+      </div>
+      <div class="pipeline">
+        <div class="pipeline-step">
+          <span class="step-label">Metabolism</span>
+          Monitors entropy at agent_end. High-entropy exchanges queued as candidates (~5ms).
+        </div>
+        <div class="pipeline-step">
+          <span class="step-label">Contemplate</span>
+          3-pass reflection: immediate (clarify) &rarr; 4h (connect patterns) &rarr; 20h (synthesize growth vector).
+        </div>
+        <div class="pipeline-step">
+          <span class="step-label">Crystallize</span>
+          3-gate system: time threshold met &rarr; principle alignment with SOUL.md &rarr; human review + approval.
+        </div>
+        <div class="pipeline-step">
+          <span class="step-label">Persist</span>
+          Approved traits written to identity files. The agent has changed.
+        </div>
+      </div>
+    </div>
+
+    <div class="card flow-card">
+      <div class="card-title">Context Injection <span class="badge badge-core">Per-Turn</span></div>
+      <div class="card-body">
+        Every turn, the agent's context is assembled from multiple sources via plugin hooks at <code>before_agent_start</code>:
+        <ul class="card-list">
+          <li>Stability context (entropy, loop detection, principle anchors)</li>
+          <li>Continuity context (session info, handoff, archive bootstrap, temporal markers, thread warm start)</li>
+          <li>Graph context (entity relationships relevant to current exchange)</li>
+          <li>Truth plugin (current-state facts supersede stale memories)</li>
+          <li>Mode injection (Booth/Code/Robot posture overlays)</li>
+          <li>Code Evolution scaffold (tool hints, learned rules, workflow patterns &mdash; Code mode only)</li>
+        </ul>
+        <strong>Source-anchoring guardrails:</strong> Retrieved context is injected with explicit framing &mdash; "only state facts that appear explicitly" + "do not infer or extrapolate." Prevents hallucination when the agent weaves recalled memories into responses.
+      </div>
+    </div>
+
+    <div class="card flow-card">
+      <div class="card-title">GPT 5.5 Vision Routing <span class="badge badge-core">Multimodal</span></div>
+      <div class="card-body">
+        Main chat treats GPT 5.5 as the intended multimodal reasoning layer. Images stay attached as image parts when the selected provider supports native vision.
+        <ul class="card-list">
+          <li><strong>Native route</strong> &mdash; the GPT 5.5 path sends text and image parts together so one model reasons across language and pixels</li>
+          <li><strong>Ollama fallback</strong> &mdash; if running through Ollama, a configured vision model produces a prepass description and the text model receives that description</li>
+          <li><strong>Multiple files</strong> &mdash; chat accepts multiple images and documents with a 15 MB per-file ceiling and per-file receipts</li>
+          <li><strong>Document path</strong> &mdash; text-like documents inject bounded excerpts now and persist fuller extracted text in the receipt table</li>
+        </ul>
+        The fallback exists for resilience, but the preferred behavior is one GPT 5.5-class model reasoning from both text and image.
+      </div>
+    </div>
+
+    <div class="card seal-card">
+      <div class="card-title">Code Evolution <span class="badge badge-auto">Proposal-Only</span></div>
+      <div class="card-body">
+        SEAL evolves <em>who the agent is</em> (identity/memory). Code Evolution watches <em>how the agent works</em> in Code mode and turns repeated friction into reviewable scaffold proposal receipts. It does not silently mutate protected scaffold or runtime state.
+      </div>
+      <div class="pipeline">
+        <div class="pipeline-step">
+          <span class="step-label">Record</span>
+          Passive session recording: tool calls, outcomes, satisfaction signals during Code mode.
+        </div>
+        <div class="pipeline-step">
+          <span class="step-label">Analyze</span>
+          Pattern detection across recorded sessions: repeated tool failures, long tool-call loops, correction patterns.
+        </div>
+        <div class="pipeline-step">
+          <span class="step-label">Propose</span>
+          Emit <code>scaffold_proposal</code> receipts with evidence, expected effect, verification, and rollback metadata.
+        </div>
+        <div class="pipeline-step">
+          <span class="step-label">Review</span>
+          Promotion is a separate operator-owned lane; proposals are visible, auditable, and reversible.
+        </div>
+      </div>
+    </div>
+
+    <div class="card flow-card">
+      <div class="card-title">Bleed Prevention <span class="badge badge-core">Filter</span></div>
+      <div class="card-body">
+        Mode exchanges are tagged with injection markers. Filtered at two layers:
+        <ul class="card-list">
+          <li><strong>Archive bootstrap</strong> &mdash; cold-start skips mode-tagged user messages</li>
+          <li><strong>Continuity queries</strong> &mdash; SQLite reads exclude mode markers</li>
+          <li>Chat &harr; Booth share context. Code is isolated from both.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card flow-card">
+      <div class="card-title">Runtime Hardening <span class="badge badge-gate">Noise Control</span></div>
+      <div class="card-body">
+        Recent cleanup made the runtime quieter, more observable, and less likely to confuse the model with stale or duplicated scaffolding.
+        <ul class="card-list">
+          <li><strong>Debounced handoffs</strong> &mdash; session handoff writes batch by time/exchange count and carry reason tags</li>
+          <li><strong>Mtime caches</strong> &mdash; repeated identity and working-memory file reads reuse cached text until the file actually changes</li>
+          <li><strong>Registry-based gaps</strong> &mdash; metabolism listeners are keyed by plugin id so reloads do not duplicate emissions</li>
+          <li><strong>Runtime metrics</strong> &mdash; every plugin hook can be timed and reported against load budgets</li>
+          <li><strong>EPL gate</strong> &mdash; consequential runtime/file/process/config claims require a fresh verifier or an explicit "unverified" statement</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ RIGHT COLUMN: Identity Layer ═══════════ -->
+  <div class="column" id="identity-layer">
+    <h2>Identity Layer</h2>
+
+    <div class="card identity-card">
+      <div class="card-title">9-Layer Identity Hierarchy <span class="badge badge-gate">Stateless Rebuild</span></div>
+      <div class="card-body">
+        Rebuilt every turn from persistent files. No in-memory state survives restart. Everything meaningful lives in files.
+        <ul class="card-list">
+          <li><strong>SOUL.md</strong> &mdash; core principles, who the agent is beyond the prompt</li>
+          <li><strong>AGENTS.md</strong> &mdash; operational playbook, behavioral rules</li>
+          <li><strong>ANCHOR.md</strong> &mdash; who the user is (generated at onboarding)</li>
+          <li><strong>TOOLS.md</strong> &mdash; discovered environment knowledge</li>
+          <li><strong>Standing</strong> &mdash; Courage/Word/Brand growth dimensions</li>
+          <li><strong>Memory files</strong> &mdash; daily journals, observations</li>
+          <li><strong>Session handoff</strong> &mdash; bridge between sessions</li>
+          <li><strong>Continuity context</strong> &mdash; retrieved exchange history</li>
+          <li><strong>Graph context</strong> &mdash; entity relationships</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card identity-card">
+      <div class="card-title">Standing System <span class="badge badge-gate">Growth</span></div>
+      <div class="card-body">
+        Not metrics &mdash; developmental dimensions. The agent evaluates user growth and tracks trajectory.
+        <ul class="card-list">
+          <li><strong>Courage (grounding)</strong> &mdash; ability to stay present with discomfort</li>
+          <li><strong>Courage (self)</strong> &mdash; self-awareness and advocacy</li>
+          <li><strong>Word</strong> &mdash; honesty, follow-through, self-correction</li>
+          <li><strong>Brand</strong> &mdash; consistency, the trail you leave</li>
+        </ul>
+        Evidence collected inline (22 regex patterns). Synthesis runs overnight via nightshift. Context injection includes <strong>why</strong> scores changed &mdash; recent evidence directions, pattern names, and a trailing evidence trail (last 5 patterns). Scores visible in sidebar.
+      </div>
+    </div>
+
+    <div class="card identity-card">
+      <div class="card-title">Relational Postures <span class="badge badge-gate">Modes</span></div>
+      <div class="card-body">
+        Not separate agents &mdash; <strong>one agent, one identity, one memory</strong>. The same agent draws from the same continuity database, the same standing scores, the same lived history. What changes is the <em>stance</em> &mdash; a lightweight identity overlay that focuses the agent's attention and voice for the context at hand.
+        <ul class="card-list">
+          <li><strong>Chat</strong> &mdash; trail companion, natural conversation</li>
+          <li><strong>Booth</strong> &mdash; Socratic, leadership-focused, draws from standing + journal</li>
+          <li><strong>Code</strong> &mdash; Trail Ride protocol, narrated execution, choose-your-adventure</li>
+          <li><strong>Robot</strong> &mdash; embodied presence, spatial knowledge, curiosity</li>
+        </ul>
+        Same agent. Same memory. Different lens. Like a person who listens differently as a mentor than as a collaborator &mdash; the knowledge doesn't change, the posture does.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Nightshift <span class="badge badge-auto">Off-Hours</span></div>
+      <div class="card-body">
+        Heavy LLM processing runs when the user is away. Standing synthesis, contemplation passes, metabolism candidate processing, knowledge graph backfill. Also triggers on idle (15 min inactivity, max 5 cycles/day).
+      </div>
+    </div>
+
+    <div class="card identity-card">
+      <div class="card-title">Cognitive Dynamics <span class="badge badge-auto">Substrate</span></div>
+      <div class="card-body">
+        A learned observational layer running continuously alongside memory. Not <em>what</em> the agent remembers &mdash; the <em>state</em> it's in while remembering.
+        <ul class="card-list">
+          <li><strong>Encoder</strong> &mdash; per-turn features &rarr; 64-dim latent state vector</li>
+          <li><strong>Predictor</strong> &mdash; one-step-ahead over latent space; surprise = prediction error</li>
+          <li><strong>Online learner</strong> &mdash; weights update between turns from observed error</li>
+          <li><strong>Consumers</strong> &mdash; Stability (entropy injection), Metabolism (candidate flagging), Telemetry (opt-in research stream)</li>
+        </ul>
+        Data written to <code>cognitive-dynamics.jsonl</code>. Research substrate behind the linked paper on agent latent-state dynamics.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ FULL WIDTH: Comparison ═══════════ -->
+  <div class="compare-section">
+    <h2>How This Compares</h2>
+    <div class="card" style="overflow-x: auto;">
+      <table>
+        <tr>
+          <th></th>
+          <th>Mem0</th>
+          <th>MemPalace</th>
+          <th>Wiki-Memory</th>
+          <th style="color: var(--accent);">COTW</th>
+        </tr>
+        <tr>
+          <td>Storage</td>
+          <td>Extracted facts</td>
+          <td>Verbatim + structure</td>
+          <td>Compiled wiki</td>
+          <td class="highlight-cell">Hybrid: archive + vectors + knowledge + identity</td>
+        </tr>
+        <tr>
+          <td>What decides to remember</td>
+          <td>AI extraction</td>
+          <td>Nothing (store all)</td>
+          <td>Ingest pipeline</td>
+          <td class="highlight-cell">Multi-layer: raw archive + selective indexes + metabolic flagging + human-gated crystallization</td>
+        </tr>
+        <tr>
+          <td>Retrieval</td>
+          <td>Vector + graph</td>
+          <td>Metadata filtering</td>
+          <td>Wiki lookup</td>
+          <td class="highlight-cell">4-way RRF: semantic + keyword + temporal + graph</td>
+        </tr>
+        <tr>
+          <td>Identity</td>
+          <td>None</td>
+          <td>None</td>
+          <td>None</td>
+          <td class="highlight-cell">9-layer hierarchy, stateless reconstruction</td>
+        </tr>
+        <tr>
+          <td>Autonomous processing</td>
+          <td>None</td>
+          <td>None</td>
+          <td>None</td>
+          <td class="highlight-cell">SEAL: metabolism &rarr; contemplation (3-pass/20h) &rarr; crystallization (3-gate + human review)</td>
+        </tr>
+        <tr>
+          <td>Thread scoping</td>
+          <td>user_id / agent_id</td>
+          <td>Wings / rooms</td>
+          <td>Wiki pages</td>
+          <td class="highlight-cell">Infinite threads: persistent project scopes with 80% RRF boost, LLM warm start, consolidation</td>
+        </tr>
+        <tr>
+          <td>Hallucination prevention</td>
+          <td>None</td>
+          <td>Verbatim storage</td>
+          <td>None</td>
+          <td class="highlight-cell">Source-anchoring guardrails + truth table + proper noun detection</td>
+        </tr>
+        <tr>
+          <td>Provenance</td>
+          <td>None</td>
+          <td>Verbatim retains source by default</td>
+          <td>None</td>
+          <td class="highlight-cell">Every claim source-addressable; candidate vs. verified two-lane boundary; verified-only injection gate</td>
+        </tr>
+        <tr>
+          <td>Attachments</td>
+          <td>Provider/application dependent</td>
+          <td>Stored as artifacts in local project context</td>
+          <td>Imported into wiki pages</td>
+          <td class="highlight-cell">Receipt-backed images/docs with source path, SHA-256, turn linkage, bounded excerpts, and explicit re-verification gaps</td>
+        </tr>
+        <tr>
+          <td>Builder harness</td>
+          <td>Memory API only</td>
+          <td>Memory architecture only</td>
+          <td>Knowledge base workflow</td>
+          <td class="highlight-cell">PRDs, deep research loops, code receipts, proposal-only evolution, and continuity-aware handoffs</td>
+        </tr>
+        <tr>
+          <td>Runtime mutation control</td>
+          <td>None</td>
+          <td>None</td>
+          <td>None</td>
+          <td class="highlight-cell">Operator-gated apply / rollback workflow; protected fields unreachable from agent tool surface</td>
+        </tr>
+        <tr>
+          <td>Growth tracking</td>
+          <td>None</td>
+          <td>None</td>
+          <td>None</td>
+          <td class="highlight-cell">Standing dimensions (Courage/Word/Brand) with overnight synthesis</td>
+        </tr>
+        <tr>
+          <td>Cost</td>
+          <td>Hosted / paid tiers</td>
+          <td>Local runtime</td>
+          <td>Local</td>
+          <td class="highlight-cell">Free local continuity substrate; model costs depend on the selected GPT 5.5/provider route</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    Code of the West &mdash; Memory is not storage. Memory is identity.
+  </div>
+
+</div>
+</body>
+</html>

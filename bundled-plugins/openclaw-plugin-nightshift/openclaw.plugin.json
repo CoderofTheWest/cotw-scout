@@ -1,0 +1,20 @@
+{
+  "id": "nightshift",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Night Shift Scheduler",
+  "description": "Night shift scheduler for heavy LLM processing. Respects user workflow by running tasks during off-hours.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean" },
+      "schedule": { "type": "object" },
+      "triggers": { "type": "object" },
+      "processing": { "type": "object" },
+      "tasks": { "type": "object" },
+      "state": { "type": "object" }
+    }
+  }
+}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Learning Checkpoint</title>
+<style>
+  :root { color-scheme: light dark; --bg:#0f172a; --card:#111827; --ink:#e5e7eb; --muted:#9ca3af; --line:#334155; --good:#22c55e; --bad:#ef4444; --accent:#60a5fa; --btn:#1f2937; }
+  body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:linear-gradient(180deg,#0b1020,#111827); color:var(--ink); }
+  .wrap { max-width:820px; margin:0 auto; padding:22px; }
+  .card { border:1px solid var(--line); border-radius:18px; background:rgba(17,24,39,.86); padding:22px; }
+  h1 { margin:0 0 6px; font-size:24px; }
+  .sub,.score { color:var(--muted); line-height:1.45; }
+  .progress { height:8px; background:#0b1220; border:1px solid var(--line); border-radius:99px; overflow:hidden; margin:14px 0 20px; }
+  .bar { height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#a78bfa); transition:width .25s ease; }
+  .context { color:#cbd5e1; background:#0b1220; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:16px; line-height:1.5; }
+  .q { font-size:20px; font-weight:700; line-height:1.35; margin-bottom:14px; }
+  .answers { display:grid; gap:10px; }
+  button.answer { text-align:left; color:var(--ink); background:var(--btn); border:1px solid var(--line); border-radius:12px; padding:13px 14px; font-size:16px; cursor:pointer; }
+  button.answer:hover { border-color:var(--accent); background:#243244; }
+  button.answer.correct { border-color:var(--good); background:rgba(34,197,94,.14); }
+  button.answer.wrong { border-color:var(--bad); background:rgba(239,68,68,.14); }
+  .feedback { min-height:64px; margin-top:16px; padding:14px; border-radius:12px; border:1px dashed var(--line); color:#d1d5db; line-height:1.5; }
+  .feedback.good { border-color:rgba(34,197,94,.7); }
+  .feedback.bad { border-color:rgba(239,68,68,.7); }
+  .controls { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .primary,.secondary { border-radius:12px; padding:11px 14px; font-size:15px; cursor:pointer; border:1px solid var(--line); }
+  .primary { background:var(--accent); color:#07111f; font-weight:700; }
+  .secondary { background:#0b1220; color:var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+  <h1>Learning checkpoint</h1>
+  <div class="sub">Answer slowly. A miss just shows where to teach next.</div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div id="quiz"></div>
+  <div class="controls">
+    <button class="primary" id="next" style="display:none">Next question</button>
+    <button class="secondary" id="restart" style="display:none">Start over</button>
+  </div>
+  <div class="score" id="score"></div>
+</div></div>
+<script>
+// Replace these sample questions for each lesson. Keep one concept per question.
+const questions = [
+  {
+    context: "Sample context goes here.",
+    q: "Sample question?",
+    answers: ["Answer A", "Answer B", "Answer C", "Answer D"],
+    correct: 0,
+    explain: "Explain the correct idea in one or two plain sentences."
+  }
+];
+let i = 0, score = 0, answered = false;
+const quiz = document.getElementById('quiz');
+const next = document.getElementById('next');
+const restart = document.getElementById('restart');
+const scoreEl = document.getElementById('score');
+const bar = document.getElementById('bar');
+function render(){
+  answered = false; next.style.display = 'none'; restart.style.display = 'none';
+  bar.style.width = `${(i/questions.length)*100}%`;
+  const item = questions[i];
+  quiz.innerHTML = `<div class="context">${item.context}</div><div class="q">${i+1}. ${item.q}</div><div class="answers">${item.answers.map((a,idx)=>`<button class="answer" data-idx="${idx}">${a}</button>`).join('')}</div><div class="feedback" id="feedback">Choose one.</div>`;
+  scoreEl.textContent = `Question ${i+1} of ${questions.length}`;
+  document.querySelectorAll('button.answer').forEach(btn => btn.addEventListener('click', choose));
+}
+function choose(e){
+  if(answered) return; answered = true;
+  const idx = Number(e.currentTarget.dataset.idx); const item = questions[i]; const fb = document.getElementById('feedback');
+  document.querySelectorAll('button.answer').forEach((btn,bidx)=>{ if(bidx === item.correct) btn.classList.add('correct'); if(bidx === idx && idx !== item.correct) btn.classList.add('wrong'); });
+  if(idx === item.correct){ score++; fb.className = 'feedback good'; fb.innerHTML = `Yes. ${item.explain}`; }
+  else { fb.className = 'feedback bad'; fb.innerHTML = `Not quite. ${item.explain}`; }
+  if(i < questions.length - 1) next.style.display = 'inline-block'; else finish();
+}
+function finish(){ bar.style.width = '100%'; restart.style.display = 'inline-block'; scoreEl.textContent = `Done: ${score} / ${questions.length}. ${score >= Math.ceil(questions.length*.8) ? 'You’ve got the thread.' : 'Good signal — we know where to slow down.'}`; }
+next.onclick = () => { i++; render(); };
+restart.onclick = () => { i = 0; score = 0; render(); };
+render();
+</script>
+</body>
+</html>

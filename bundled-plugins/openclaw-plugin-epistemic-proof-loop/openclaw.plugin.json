@@ -1,0 +1,33 @@
+{
+  "id": "epistemic-proof-loop",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Epistemic Proof Loop",
+  "description": "Prompt-time epistemic gate that activates only on risky claim surfaces and injects proof obligations before the model answers.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable EPL prompt gating."
+      },
+      "logDecisions": {
+        "type": "boolean",
+        "default": false,
+        "description": "Log non-off EPL decisions to Gateway stderr for diagnostics."
+      }
+    }
+  },
+  "contracts": {
+    "tools": [
+      "epistemic_proof_loop_status"
+    ],
+    "hooks": [
+      "before_prompt_build"
+    ]
+  }
+}

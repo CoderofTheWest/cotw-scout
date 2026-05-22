@@ -1,0 +1,26 @@
+{
+  "id": "truth",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Current State — Truth Table",
+  "description": "Lightweight truth table that supersedes outdated memories. Injects current state facts via prependContext on session start, providing automatic correction of semantically retrieved but outdated memories.",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable truth table injection"
+      }
+    }
+  },
+  "contracts": {
+    "tools": [
+      "truth_update",
+      "truth_list"
+    ]
+  }
+}

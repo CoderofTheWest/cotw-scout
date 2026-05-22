@@ -1,0 +1,132 @@
+{
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "{{GATEWAY_TOKEN}}"
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": {
+          "enabled": true
+        },
+        "responses": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://127.0.0.1:11434",
+        "apiKey": "ollama-local",
+        "api": "ollama",
+        "models": [
+          {
+            "id": "glm-5:cloud",
+            "name": "GLM-5 Cloud",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 202752,
+            "maxTokens": 16384
+          },
+          {
+            "id": "qwen3.5:cloud",
+            "name": "Qwen3.5 Cloud Vision",
+            "reasoning": false,
+            "input": ["text", "image"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 32768,
+            "maxTokens": 4096
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "ollama/glm-5:cloud"
+      },
+      "memorySearch": {
+        "enabled": false,
+        "experimental": {
+          "sessionMemory": false
+        },
+        "query": {
+          "hybrid": {
+            "enabled": false
+          }
+        },
+        "cache": {
+          "enabled": false
+        }
+      },
+      "blockStreamingDefault": "on",
+      "bootstrapMaxChars": 30000,
+      "bootstrapTotalMaxChars": 150000,
+      "compaction": {
+        "mode": "default",
+        "reserveTokensFloor": 30000,
+        "maxHistoryShare": 0.4,
+        "recentTurnsPreserve": 5,
+        "truncateAfterCompaction": true,
+        "maxActiveTranscriptBytes": "20mb",
+        "postCompactionSections": [
+          "Every Session",
+          "Memory",
+          "Contemplation",
+          "User Competency Assessment",
+          "Interaction Philosophy",
+          "The Four Lenses",
+          "Situational Modules",
+          "Standing",
+          "Witness Journal",
+          "Guardrails",
+          "Capability Tiers"
+        ]
+      }
+    },
+    "list": [
+      {
+        "id": "trail-guide",
+        "default": true,
+        "name": "{{AGENT_NAME}}",
+        "workspace": "{{WORKSPACE_PATH}}"
+      }
+    ]
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "bindings": [
+    {
+      "agentId": "trail-guide",
+      "match": { "channel": "electron" }
+    },
+    {
+      "agentId": "trail-guide",
+      "match": { "channel": "webchat" }
+    }
+  ],
+  "plugins": {
+    "load": {
+      "paths": {{PLUGIN_PATHS}}
+    },
+    "entries": {
+      "trust-circle": {
+        "enabled": true,
+        "config": {
+          "defaultOperator": {
+            "id": "{{OPERATOR_ID}}",
+            "displayName": "{{OPERATOR_DISPLAY_NAME}}"
+          }
+        }
+      }
+    }
+  }
+}
