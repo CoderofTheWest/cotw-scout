@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Builder Harness — Code of the West</title>
-<meta name="description" content="How COTW turns GPT 5.5 into a receipt-driven building, research diagnostics, and proposal-only refinement harness.">
+<title>Builder Harness &amp; Research Platform — Code of the West</title>
+<meta name="description" content="How COTW turns GPT 5.5 into a receipt-driven building, research diagnostics, Harness Refiner, and proposal-only refinement platform.">
 <link rel="icon" href="images/cotw-logo.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Fira+Code:wght@400;500&display=swap');
@@ -255,22 +255,25 @@
 <nav>
   <div class="nav-brand">
     <img src="images/cotw-logo.svg" alt="COTW">
-    <span>Builder Harness</span>
+    <span>Builder + Research</span>
   </div>
   <div class="nav-links">
     <a href="index.html">Overview</a>
     <a href="memory-system-map.html">Memory Map</a>
     <a href="memory-architecture.html">Architecture</a>
-    <a href="#harness-refiner">Research Diagnostics</a>
+    <a href="#research-platform">Research Platform</a>
+    <a href="#harness-refiner">Harness Refiner</a>
+    <a href="resilience-testing.html">Resilience</a>
+    <a href="cotw-cognitive-dynamics-paper.pdf">Paper</a>
     <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a>
   </div>
 </nav>
 
 <main>
   <div class="eyebrow">Coding, research, receipts, diagnostics</div>
-  <h1>The part that turns GPT 5.5 into a reliable builder.</h1>
+  <h1>The part that turns GPT 5.5 into a reliable builder and research platform.</h1>
   <p class="lead">
-    COTW Scout is not just a memory layer for conversation. Code mode uses the same continuity substrate to keep a builder agent oriented across specs, files, experiments, restarts, and correction loops. It gives beginners a guided path and gives experienced builders a disciplined workbench.
+    COTW Scout is not just a memory layer for conversation. Code mode uses the same continuity substrate to keep a builder agent oriented across specs, files, experiments, restarts, correction loops, and runtime diagnostics. It gives beginners a guided path, gives experienced builders a disciplined workbench, and turns live agent work into structured evidence for improvement.
   </p>
 
   <div class="signal">
@@ -315,17 +318,40 @@
     </div>
   </div>
 
-  <h2 id="harness-refiner">Research platform and diagnostics</h2>
-  <p class="section-sub">COTW is careful about the word evolution. The model weights do not change, and the agent does not get blanket authority over its own scaffold. The new layer is best understood as a diagnostics and research platform first.</p>
+  <h2 id="research-platform">Research platform layer</h2>
+  <p class="section-sub">COTW is careful about the word evolution. The model weights do not change, and the agent does not get blanket authority over its own scaffold. The new layer is best understood as a diagnostics and research platform first: a way to make live agent behavior inspectable, comparable, and useful for later evaluation or post-training work.</p>
   <div class="receipt-box">
-    <p><strong>What exists now:</strong> Code Evolution records Code mode sessions, tool calls, outcomes, scaffold version, and satisfaction/correction signals. Harness Refiner adds a read-only research layer on top of that evidence.</p>
-    <p><strong>What Harness Refiner accrues:</strong> trajectory windows, failure signatures, PRM-style process scores, relabel candidates, teacher-relabel receipts, research digests, scenario replay results, training-health receipts, and redacted research bundles for future training runs.</p>
-    <p><strong>Why that matters:</strong> the harness is not just logging chat history. It is collecting the kind of structured evidence a future fine-tuning, adapter, or evaluation pass would need: what failed, what context produced it, how the process scored, what a teacher repair would look like, and which artifacts were excluded.</p>
+    <p><strong>What exists now:</strong> Code Evolution records Code mode sessions, tool calls, outcomes, scaffold version, and satisfaction/correction signals. Runtime diagnostics add exchange IDs, stream cleanup traces, plugin timing, memory pressure, retention classification, and session health receipts. Harness Refiner reads that evidence as a research layer.</p>
+    <p><strong>What the platform accrues:</strong> trajectory windows, failure signatures, process scores, cognitive-surprise events, relabel candidates, teacher-relabel receipts, research digests, scenario replay results, training-health receipts, and redacted research bundles for future training runs.</p>
+    <p><strong>Why that matters:</strong> the harness is not just logging chat history. It is collecting the kind of structured evidence a future fine-tuning, adapter, or evaluation pass would need: what failed, which exchange produced it, what context was present, how the process scored, what a teacher repair would look like, and which artifacts were excluded.</p>
     <p><strong>Why proposals appear at all:</strong> some diagnostics point at repeated workflow friction. Only bounded low-risk workflow and tool-hint candidates can route through the existing Evolve scaffold promotion gate, where promotion writes before/after hashes, a rollback path, and an outcome receipt.</p>
     <p><strong>What it does not do by itself:</strong> mutate protected identity, change runtime configuration, launch training, promote adapters, change model routing, grant tool authority, or inject new prompt rules without a separate operator-owned gate.</p>
   </div>
 
-  <h2>Harness Refiner as diagnostics</h2>
+  <div class="grid">
+    <div class="card">
+      <span class="badge">Exchange spine</span>
+      <h3>One turn can be reconstructed.</h3>
+      <p>Gateway events, renderer stream events, tool calls, attachment receipts, continuity records, evolution receipts, and Refiner windows can carry a shared exchange identity. Subsystems keep their own IDs, but diagnostics get a first-class join key.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Retention</span>
+      <h3>Logs stop becoming a mystery pile.</h3>
+      <p>Runtime artifacts are classified as hot, warm, cold, research export, or excluded. The live app stays bounded while research-useful material can be preserved with source labels, hashes, redaction status, and explicit training approval state.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Cognitive layer</span>
+      <h3>State is observed separately from memory.</h3>
+      <p>The cognitive layer records per-turn latent state and prediction surprise. It is a diagnostic signal for loop detection, candidate flagging, and Refiner scoring; it is not trusted memory and does not enter the prompt as a fact claim.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Callable triage</span>
+      <h3>The same machinery helps debugging.</h3>
+      <p>A developer-facing diagnostic can inspect the last response, an exchange, a session, gateway health, plugin health, or a research bundle. That makes production errors and training-readiness questions use the same evidence path.</p>
+    </div>
+  </div>
+
+  <h2 id="harness-refiner">Harness Refiner as diagnostics</h2>
   <p class="section-sub">The new refiner is easiest to understand as the bridge between live agent work and future training or scaffold improvements. It preserves evidence first, structures candidate training data second, then asks what kind of improvement is actually allowed.</p>
   <div class="grid">
     <div class="card">
@@ -336,7 +362,7 @@
     <div class="card">
       <span class="badge">Process scoring</span>
       <h3>It scores the work, not the vibe.</h3>
-      <p>PRM-style diagnostics track format compliance, action correctness, grounding, reasoning quality, task progress, correction uptake, no-confabulation, handoff quality, mode containment, and user-burden reduction.</p>
+      <p>Process diagnostics track format compliance, action correctness, grounding, reasoning quality, task progress, correction uptake, no-confabulation, handoff quality, mode containment, and user-burden reduction.</p>
     </div>
     <div class="card">
       <span class="badge">Training runway</span>
@@ -348,6 +374,30 @@
       <h3>It can share the trail without leaking the whole camp.</h3>
       <p>Research bundle export writes redacted JSONL artifacts and a manifest hash so the system can be reviewed, replayed, evaluated, or prepared for later training experiments without dumping raw private state.</p>
     </div>
+  </div>
+
+  <h2>What can refine itself now</h2>
+  <p class="section-sub">The platform can support low-level recursive improvement, but the lane matters. The agent may help improve workflow ergonomics; it may not silently rewrite who it is or how the runtime is trusted.</p>
+  <div class="grid">
+    <div class="card">
+      <span class="badge">Allowed lane</span>
+      <h3>Low-risk workflow improvements.</h3>
+      <p>Tool-use hints, workflow checklists, diagnostics prompts, retry discipline, handoff quality reminders, and narrow scaffold notes can be proposed and promoted through the existing Evolve gate with evidence and rollback.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Protected lane</span>
+      <h3>Operator approval stays required.</h3>
+      <p>Identity files, prompt authority, memory truth status, runtime configuration, tool permissions, model routing, adapter promotion, and training launches remain outside automatic mutation. They can be diagnosed and proposed, not self-applied.</p>
+    </div>
+  </div>
+
+  <h2>Future training runway</h2>
+  <p class="section-sub">The research platform is useful before training exists because it makes training data boringly inspectable. When post-training resumes, it should start from selected, redacted, scored, and reproducible shards.</p>
+  <div class="receipt-box">
+    <p><strong>Rollout diagnostics:</strong> model/checkpoint/adapter hash, scaffold version, context hash, tool/action emitted, parse success, tool result, failure signature, and receipt handles.</p>
+    <p><strong>Process scoring:</strong> separate axes for grounding, task progress, correction uptake, format, reasoning quality, handoff quality, no-confabulation, and user-burden reduction.</p>
+    <p><strong>Teacher relabel receipts:</strong> original student turn, score breakdown, teacher repair, explanation/diff, inclusion decision, shard id, manifest hash, and training approval state.</p>
+    <p><strong>Training health receipts:</strong> CUDA/runtime readiness, trainer heartbeat, GPU utilization, step counter, loss/grad norm/LR, checkpoint timestamps, adapter hashes, and fixed eval before/after.</p>
   </div>
 
   <h2>Free and hardened</h2>
@@ -367,7 +417,8 @@
 </main>
 
 <footer>
-  <p>Code of the West &mdash; GPT 5.5 as the mind, COTW as the memory, identity, body, proof, and builder harness around it.</p>
+  <p>Code of the West &mdash; <a href="index.html">Overview</a> &middot; <a href="memory-system-map.html">Memory Map</a> &middot; <a href="memory-architecture.html">Architecture</a> &middot; <a href="resilience-testing.html">Resilience</a></p>
+  <p>GPT 5.5 as the mind, COTW as the memory, identity, body, proof, builder harness, and research platform around it.</p>
 </footer>
 </body>
 </html>

@@ -1115,11 +1115,13 @@
       <summary>Technical</summary>
       <div class="nav-dropdown">
         <a href="#build">Build harness</a>
-        <a href="#technical">Technical overview</a>
+        <a href="#research-platform">Research platform</a>
+        <a href="#technical">System overview</a>
         <a href="memory-system-map.html">Memory map</a>
         <a href="memory-architecture.html">Architecture</a>
-        <a href="builder-harness.html">Builder harness</a>
-        <a href="builder-harness.html#harness-refiner">Research diagnostics</a>
+        <a href="builder-harness.html">Builder + research</a>
+        <a href="builder-harness.html#harness-refiner">Harness Refiner</a>
+        <a href="resilience-testing.html">Resilience test</a>
       </div>
     </details>
     <details class="nav-menu">
@@ -1150,7 +1152,8 @@
     <div class="hero-buttons">
       <a href="https://github.com/CoderofTheWest/cotw-scout/releases/latest/download/COTW-Scout-arm64.dmg" class="btn btn-primary">Download Mac DMG</a>
       <a href="#how" class="btn btn-secondary">See how the memory works</a>
-      <a href="#technical" class="btn btn-secondary">Open the technical map</a>
+      <a href="#technical" class="btn btn-secondary">Open the system overview</a>
+      <a href="#research-platform" class="btn btn-secondary">Research platform</a>
     </div>
     <p class="hero-note">Designed around GPT 5.5 as the reasoning and multimodal layer. Fallback routes exist for resilience, but the system is tuned around GPT 5.5-class behavior.</p>
     <p class="hero-note">Memory, receipts, identity state, and reviewable records live on your machine. Model routing is configurable.</p>
@@ -1356,20 +1359,62 @@
       <div class="build-card">
         <small>Diagnostics</small>
         <h3>Harness Refiner</h3>
-        <p>Trajectory windows become failure signatures, PRM-style process scores, relabel candidates, research digests, and redacted bundles for future training runs.</p>
+        <p>Trajectory windows become failure signatures, process scores, relabel candidates, research digests, and redacted bundles for future training runs.</p>
       </div>
     </div>
 
     <div class="free-band">
-      The memory substrate is free by design and hardened by receipts: local SQLite/Markdown storage, source handles, tests, audit logs, and rollback-aware proposal lanes. Services like hosted memory planes can be useful, but COTW already covers a lot of that surface locally while adding identity and proof discipline on top.
+      The memory substrate is free by design and hardened by receipts: local SQLite/Markdown storage, source handles, tests, audit logs, and rollback-aware proposal lanes. The same substrate now supports a research platform layer: diagnostics, retention policy, exchange trace IDs, bundle manifests, and future training-data candidates without putting expensive analysis on the live response path.
     </div>
+  </div>
+</section>
+
+<!-- ═══════════ Research Platform ═══════════ -->
+<section id="research-platform">
+  <h2>Research platform layer</h2>
+  <p class="section-sub">The research platform is now a first-class part of the system: it explains what the agent did, preserves why it mattered, and prepares reviewable evidence for future harness refinement or post-training work without launching training or mutating protected state.</p>
+
+  <div class="build-grid">
+    <div class="build-card">
+      <small>Trace</small>
+      <h3>Exchange spine</h3>
+      <p>Responses, tool calls, attachments, runtime metrics, continuity records, and refiner windows can share one exchange identity so a diagnostic can answer "what happened in this turn?" without brittle timestamp joins.</p>
+    </div>
+
+    <div class="build-card">
+      <small>Observe</small>
+      <h3>Cognitive layer</h3>
+      <p>A learned observational layer records per-turn latent state, prediction error, and surprise. It feeds Stability, Metabolism, and Refiner scoring as a diagnostic signal, not as trusted memory.</p>
+    </div>
+
+    <div class="build-card">
+      <small>Score</small>
+      <h3>Harness Refiner</h3>
+      <p>The refiner reads trajectory windows for grounding, correction uptake, task progress, mode containment, handoff quality, no-confabulation, and user-burden signals, then emits reviewable proposals or training candidates.</p>
+    </div>
+
+    <div class="build-card">
+      <small>Retain</small>
+      <h3>Research archive</h3>
+      <p>Hot runtime logs stay bounded while valuable windows move into warm or research storage with source labels, redaction state, hashes, bundle manifests, and explicit training approval set to false by default.</p>
+    </div>
+
+    <div class="build-card">
+      <small>Improve</small>
+      <h3>Safe refinement lanes</h3>
+      <p>Low-risk workflow hints can route through the existing Evolve gate. Prompt rules, identity, tools, model routes, adapters, and training launches remain behind separate operator-owned approvals.</p>
+    </div>
+  </div>
+
+  <div class="free-band">
+    The goal is research-platform behavior, not self-modifying theater: collect high-quality evidence, make diagnostics callable, preserve rollback and redaction, and leave future LoRA/SFT or evaluation work with clean shards instead of mystery logs.
   </div>
 </section>
 
 <!-- ═══════════ Technical Drilldown ═══════════ -->
 <section id="technical">
-  <h2>Technical overview</h2>
-  <p class="section-sub">The homepage gives the story. These cards open the deeper maps and references for people who want to inspect the machinery.</p>
+  <h2>System overview</h2>
+  <p class="section-sub">The homepage gives the story. These cards open the deeper maps and references in the order most people should read them: visual system map, technical reference, builder and research platform, then empirical case studies.</p>
 
   <div class="tech-layers">
     <a class="tech-layer" href="memory-system-map.html#storage-layer">
@@ -1393,14 +1438,19 @@
       <span class="tech-link">Open governance reference</span>
     </a>
     <a class="tech-layer" href="builder-harness.html">
-      <h3>Build Harness</h3>
+      <h3>Builder Harness</h3>
       <p>PRD Builder, deep research, direct research sprints, Code mode session receipts, infinite project threads, diagnostics, and proposal-only refinement.</p>
-      <span class="tech-link">Open builder harness</span>
+      <span class="tech-link">Open builder reference</span>
     </a>
     <a class="tech-layer" href="builder-harness.html#harness-refiner">
-      <h3>Research Diagnostics</h3>
-      <p>Read-only trajectory analysis, failure detectors, process scoring, relabel packets, research digests, redacted bundles for future training runs, and protected proposal lanes.</p>
-      <span class="tech-link">Open diagnostics</span>
+      <h3>Research Platform</h3>
+      <p>Exchange trace identity, runtime diagnostics, cognitive observations, Harness Refiner scoring, retention tiers, relabel packets, and redacted future-training bundles.</p>
+      <span class="tech-link">Open research layer</span>
+    </a>
+    <a class="tech-layer" href="resilience-testing.html">
+      <h3>Resilience Testing</h3>
+      <p>A cold adversarial probe showing how the constraint architecture behaves under prompt pressure, escalation, and session-boundary persistence.</p>
+      <span class="tech-link">Open case study</span>
     </a>
   </div>
 
@@ -1482,15 +1532,9 @@ npm install</code></pre>
 <!-- ═══════════ Docs ═══════════ -->
 <section id="docs">
   <h2>Choose your depth</h2>
-  <p class="section-sub">Start visual, then go technical, then read the research artifacts.</p>
+  <p class="section-sub">A logical path through the system: start with the visual map, read the architecture, inspect the builder/research layer, then look at the paper and case study.</p>
 
   <div class="docs-grid">
-    <a href="builder-harness.html" class="doc-card">
-      <span class="doc-card-badge badge-html">Builder</span>
-      <div class="doc-card-title">Coding Harness &amp; Research Loop</div>
-      <div class="doc-card-desc">How PRDs, deep research, direct research sprints, infinite threads, receipts, research diagnostics, and proposal-only refinement turn the agent into a recursive building system.</div>
-    </a>
-
     <a href="memory-system-map.html" class="doc-card">
       <span class="doc-card-badge badge-html">Interactive</span>
       <div class="doc-card-title">Memory System Map</div>
@@ -1501,6 +1545,12 @@ npm install</code></pre>
       <span class="doc-card-badge badge-md">Technical</span>
       <div class="doc-card-title">Memory Architecture</div>
       <div class="doc-card-desc">Schema definitions, RRF retrieval, SEAL pipeline, integration spine, proof gates, diagnostics, proposal gates, scaling notes, and open questions.</div>
+    </a>
+
+    <a href="builder-harness.html" class="doc-card">
+      <span class="doc-card-badge badge-html">Builder</span>
+      <div class="doc-card-title">Builder Harness &amp; Research Platform</div>
+      <div class="doc-card-desc">How PRDs, deep research, direct research sprints, infinite threads, receipts, Harness Refiner diagnostics, retention policy, and proposal-only refinement turn the agent into a recursive building system.</div>
     </a>
 
     <a href="cotw-cognitive-dynamics-paper.pdf" class="doc-card">
@@ -1519,7 +1569,7 @@ npm install</code></pre>
 
 <!-- ═══════════ Footer ═══════════ -->
 <footer>
-  <p style="margin-bottom: 8px;">Code of the West &mdash; <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a></p>
+  <p style="margin-bottom: 8px;">Code of the West &mdash; <a href="memory-system-map.html">System Map</a> &middot; <a href="memory-architecture.html">Architecture</a> &middot; <a href="builder-harness.html">Builder + Research</a> &middot; <a href="resilience-testing.html">Resilience</a> &middot; <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a></p>
   <p>GPT 5.5 is the mind. COTW is the memory, identity, body, and discipline around it.</p>
 </footer>
 

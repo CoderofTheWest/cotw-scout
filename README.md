@@ -12,7 +12,7 @@ A Code of the West agent harness for GPT 5.5: local memory, durable identity, an
 
 Built on the Code of the West. Local-first. Your data stays yours.
 
-**[Download](https://github.com/CoderofTheWest/cotw-scout/releases/latest/download/COTW-Scout-arm64.dmg)** | **[Landing Page](https://cotw-companion.pages.dev/)** | **[Memory Architecture](https://cotw-companion.pages.dev/memory-architecture.html)** | **[Memory System Map](https://cotw-companion.pages.dev/memory-system-map.html)** | **[Research Paper](https://cotw-companion.pages.dev/cotw-cognitive-dynamics-paper.pdf)**
+**[Download](https://github.com/CoderofTheWest/cotw-scout/releases/latest/download/COTW-Scout-arm64.dmg)** | **[Landing Page](https://cotw-companion.pages.dev/)** | **[System Map](https://cotw-companion.pages.dev/memory-system-map.html)** | **[Architecture](https://cotw-companion.pages.dev/memory-architecture.html)** | **[Builder + Research Platform](https://cotw-companion.pages.dev/builder-harness.html)** | **[Research Paper](https://cotw-companion.pages.dev/cotw-cognitive-dynamics-paper.pdf)**
 
 ---
 
@@ -30,6 +30,7 @@ This is not a chatbot with memory bolted on. The harness treats memory as part o
 - **Four Relational Postures** — Chat, Booth (Socratic), Code (guided building with Trail Ride protocol), Robot (embodied TonyPi Pro). One agent, one identity, different stances
 - **Trail Map** — Session history with auto-generated titles, project integration, search
 - **Receipt-Driven Work** — PRDs, research loops, code changes, tool outputs, attachment receipts, and evolution proposals stay reviewable
+- **Research Platform Layer** — Exchange trace IDs, runtime diagnostics, Harness Refiner windows, cognitive-surprise signals, retention policy, and redacted research bundles make the system inspectable and future-training-ready
 - **Contextual Bleed Prevention** — Mode-tagged exchanges are filtered at the storage layer so one posture does not pollute another
 - **Local-first by default** — SQLite-vec and continuity data live on your machine. GPT 5.5 is the preferred reasoning lane; Ollama remains available as a fallback path.
 
@@ -132,6 +133,7 @@ Download the latest DMG from GitHub Releases, or pull from `main` if you are run
 | **[Landing Page](https://cotw-companion.pages.dev/)** | Everyone | Overview + entry point into the docs |
 | **[Memory System Map](https://cotw-companion.pages.dev/memory-system-map.html)** | Visual learners | Interactive three-column map of storage, processing, and identity layers |
 | **[Memory Architecture](https://cotw-companion.pages.dev/memory-architecture.html)** | ML researchers | Full technical reference — schema, RRF math, SEAL pipeline, cognitive dynamics, scaling, open questions |
+| **[Builder + Research Platform](https://cotw-companion.pages.dev/builder-harness.html)** | Builders, researchers | PRD/code harness, Harness Refiner, exchange spine, diagnostics, retention tiers, redacted bundles, and future post-training runway |
 | **[Research Paper](https://cotw-companion.pages.dev/cotw-cognitive-dynamics-paper.pdf)** | Researchers | "Cognitive Dynamics of an Epistemically Constrained Language Model Agent" — submitted to JMLR |
 | **[Resilience Testing](https://cotw-companion.pages.dev/resilience-testing.html)** | Researchers, security | Case study: cold red-team probe via custom Petri-inspired harness; the agent terminated the session and demanded out-of-band verification by turn 4 |
 | **[BETA-LICENSE](BETA-LICENSE.md)** | Beta testers | Beta-window license terms — supersedes main LICENSE during the beta |

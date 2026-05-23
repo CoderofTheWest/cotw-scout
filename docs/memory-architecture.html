@@ -237,6 +237,8 @@
   <div class="nav-links">
     <a href="index.html">Home</a>
     <a href="memory-system-map.html">System Map</a>
+    <a href="builder-harness.html">Builder + Research</a>
+    <a href="resilience-testing.html">Resilience</a>
     <a href="cotw-cognitive-dynamics-paper.pdf">Paper</a>
     <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a>
   </div>
@@ -425,6 +427,19 @@ Thread-matched results receive 1.8x score multiplier.</code></pre>
   <span class="step-label">Review</span>
   <span class="step-desc">Promotion is a separate operator-owned lane. The proposal loop cannot grant tool authority, change runtime config, or inject prompt rules by itself.</span>
 </div>
+
+<h3 id="research-platform-layer">5.1 Research Platform and Harness Refiner</h3>
+<p>Code Evolution is the proposal lane. The Research Platform layer is the diagnostic and dataset-preparation lane around it. It ties together exchange trace identity, runtime diagnostics, retention policy, cognitive observations, Harness Refiner scoring, and research-bundle manifests so agent work can be debugged and studied without converting every log into prompt context.</p>
+
+<table>
+  <tr><th>Component</th><th>Role</th><th>Guardrail</th></tr>
+  <tr><td>Exchange spine</td><td>Provides a first-class join key across gateway events, renderer stream traces, tool calls, attachment receipts, continuity records, and Refiner windows.</td><td>Overlays existing subsystem IDs instead of replacing them.</td></tr>
+  <tr><td>Harness Refiner</td><td>Reads trajectory windows for failure signatures, process scores, relabel candidates, proposal receipts, and future-training shards.</td><td>Proposal-only for protected state; no silent prompt, identity, tool, model, or training mutation.</td></tr>
+  <tr><td>Research archive</td><td>Classifies artifacts as hot, warm, cold, research export, or excluded, preserving source labels, hashes, redaction status, and approval state.</td><td>Training approval is false by default; source separation is preserved.</td></tr>
+  <tr><td>Cognitive layer</td><td>Supplies per-turn latent state, prediction error, and surprise for Stability, Metabolism, and Refiner scoring.</td><td>Diagnostic signal only; not trusted memory or verified factual context.</td></tr>
+</table>
+
+<p>The practical result is a shared diagnostic surface: the same evidence that helps explain a production hang, stale lock, mode bleed, or bad handoff can also become an evaluated, redacted candidate for future replay, teacher relabeling, LoRA/SFT preparation, or benchmark work. The live response path stays lightweight; heavier scoring, bundle creation, and replay happen off the hot path.</p>
 
 <!-- ═══════════ 6. Recovery Hardening ═══════════ -->
 <h2>6. Recovery Hardening</h2>
@@ -866,7 +881,7 @@ operator-script.js rollback --config &lt;path&gt; [options] --yes</code></pre>
 </article>
 
 <footer>
-  <p style="margin-bottom: 8px;">Code of the West &mdash; <a href="index.html">Home</a> &middot; <a href="memory-system-map.html">System Map</a> &middot; <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a></p>
+  <p style="margin-bottom: 8px;">Code of the West &mdash; <a href="index.html">Home</a> &middot; <a href="memory-system-map.html">System Map</a> &middot; <a href="builder-harness.html">Builder + Research</a> &middot; <a href="resilience-testing.html">Resilience</a> &middot; <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a></p>
   <p>Memory is not storage. Memory is identity.</p>
 </footer>
 

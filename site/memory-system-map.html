@@ -53,6 +53,27 @@
 
   body > * { position: relative; z-index: 1; }
 
+  nav {
+    max-width: 1200px;
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(30, 26, 22, 0.78);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand { display: flex; align-items: center; gap: 10px; }
+  .nav-brand img { height: 26px; filter: brightness(0) invert(0.9); }
+  .nav-brand span { font-family: var(--font-serif); font-size: 15px; }
+  .nav-links { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; }
+  .nav-links a { color: var(--text-muted); text-decoration: none; }
+  .nav-links a:hover { color: var(--text); }
+
   h1 {
     font-family: var(--font-serif);
     font-size: 28px;
@@ -251,6 +272,8 @@
 
   .highlight-cell { color: var(--accent); font-weight: 500; }
 
+  a { color: var(--accent); }
+
   /* ── Fullwidth sections ── */
   .fullwidth {
     grid-column: 1 / -1;
@@ -297,6 +320,21 @@
 </style>
 </head>
 <body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="images/cotw-logo.svg" alt="COTW">
+    <span>System Map</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Overview</a>
+    <a href="memory-architecture.html">Architecture</a>
+    <a href="builder-harness.html">Builder + Research</a>
+    <a href="resilience-testing.html">Resilience</a>
+    <a href="cotw-cognitive-dynamics-paper.pdf">Paper</a>
+    <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a>
+  </div>
+</nav>
 
 <h1>Memory &amp; Continuity System</h1>
 <p class="subtitle">Code of the West Agent Architecture &mdash; How an agent remembers, learns, and grows</p>
@@ -513,6 +551,20 @@
     </div>
 
     <div class="card flow-card">
+      <div class="card-title">Research Platform <span class="badge badge-gate">Diagnostics</span></div>
+      <div class="card-body">
+        The platform layer makes live agent behavior inspectable and reusable for future evaluation or training without putting that weight on the response path.
+        <ul class="card-list">
+          <li><strong>Exchange spine</strong> &mdash; one join key across stream events, tool calls, attachments, continuity records, and Refiner windows</li>
+          <li><strong>Harness Refiner</strong> &mdash; trajectory windows, failure signatures, process scores, relabel candidates, and proposal receipts</li>
+          <li><strong>Retention registry</strong> &mdash; hot/warm/cold/research/excluded artifact classes with source labels and hashes</li>
+          <li><strong>Training runway</strong> &mdash; redacted bundles, manifests, teacher-relabel packets, and training approval disabled by default</li>
+        </ul>
+        Low-risk workflow hints can pass through Evolve. Identity, prompt authority, model routing, tools, and training remain operator-gated.
+      </div>
+    </div>
+
+    <div class="card flow-card">
       <div class="card-title">Bleed Prevention <span class="badge badge-core">Filter</span></div>
       <div class="card-body">
         Mode exchanges are tagged with injection markers. Filtered at two layers:
@@ -694,6 +746,13 @@
           <td class="highlight-cell">PRDs, deep research loops, code receipts, proposal-only evolution, and continuity-aware handoffs</td>
         </tr>
         <tr>
+          <td>Research platform</td>
+          <td>Product analytics separate from memory</td>
+          <td>Experiment logs outside the memory map</td>
+          <td>Research notes in the knowledge base</td>
+          <td class="highlight-cell">Exchange trace spine, Harness Refiner scoring, retention tiers, cognitive diagnostics, redacted bundles, and future-training manifests</td>
+        </tr>
+        <tr>
           <td>Runtime mutation control</td>
           <td>None</td>
           <td>None</td>
@@ -719,7 +778,7 @@
   </div>
 
   <div class="footer">
-    Code of the West &mdash; Memory is not storage. Memory is identity.
+    Code of the West &mdash; <a href="index.html">Overview</a> &middot; <a href="memory-architecture.html">Architecture</a> &middot; <a href="builder-harness.html">Builder + Research</a> &middot; <a href="resilience-testing.html">Resilience</a>
   </div>
 
 </div>
