@@ -91,7 +91,7 @@ Download the latest signed Apple Silicon DMG:
 
 The app walks you through first-run setup, including OpenAI/Codex login.
 
-**Developer path:**
+**Run from source:**
 
 1. **Node.js** 22.14+ — [nodejs.org](https://nodejs.org) or `brew install node@22`
 2. **OpenAI/Codex login** — preferred for the GPT 5.5 runtime lane
@@ -107,6 +107,8 @@ npm start
 ```
 
 The setup script verifies Node, runs `npm install`, and flags anything missing with clear next steps. If something fails, open an issue or send the output to the maintainer.
+
+This is not an npm package or CLI install. npm is only used to install dependencies and run the Electron app from source.
 
 The app walks you through onboarding on first launch — naming your agent, setting your values, optionally connecting GitHub for workspace backup.
 
