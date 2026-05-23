@@ -247,6 +247,7 @@ function main() {
   applyPluginRuntimeRegistryFallbackPatch();
   applyToolResultFidelityPatch();
   applyContextLoopRecoveryPatch();
+  applyCompactionSessionFencePatch();
   applyOpenAiHttpToolEventPatch();
   applyToolResultRangeToolPatch();
 }
@@ -771,6 +772,39 @@ function findSelectionFile() {
     if (source.includes('function installToolResultContextGuard(params)')) return file;
   }
   throw new Error('Could not locate OpenClaw selection dist file');
+}
+
+function applyCompactionSessionFencePatch() {
+  const target = findSelectionFile();
+  let source = fs.readFileSync(target, 'utf8');
+  let changed = false;
+
+  if (!source.includes('async reconcileExpectedSessionFileMutation()')) {
+    const anchor = '\t\tasync acquireForCleanup(cleanupParams) {';
+    const block = '\t\tasync reconcileExpectedSessionFileMutation() {\n\t\t\tif (!fenceActive || takeoverDetected) return false;\n\t\t\tconst { lock, owned } = await acquireWriteLock();\n\t\t\ttry {\n\t\t\t\tconst current = await readSessionFileFingerprint(params.lockOptions.sessionFile);\n\t\t\t\tif (sameSessionFileFingerprint(fenceFingerprint, current)) return false;\n\t\t\t\tfenceFingerprint = current;\n\t\t\t\treturn true;\n\t\t\t} finally {\n\t\t\t\tif (owned) await lock.release();\n\t\t\t}\n\t\t},\n';
+    if (!source.includes(anchor)) {
+      throw new Error('OpenClaw selection shape changed: session fence cleanup anchor not found');
+    }
+    source = source.replace(anchor, block + anchor);
+    changed = true;
+  }
+
+  if (!source.includes('const compactionCountAfterPrompt = getCompactionCount();')) {
+    const oldBlock = '\t\t\t\tawait sessionLockController.waitForSessionEvents(activeSession);\n\t\t\t\tawait sessionLockController.withSessionWriteLock(async () => {\n\t\t\t\t\tcompactionOccurredThisAttempt = getCompactionCount() > 0;';
+    const newBlock = '\t\t\t\tawait sessionLockController.waitForSessionEvents(activeSession);\n\t\t\t\tconst compactionCountAfterPrompt = getCompactionCount();\n\t\t\t\tif (compactionCountAfterPrompt > 0) {\n\t\t\t\t\tconst reconciledSessionFence = await sessionLockController.reconcileExpectedSessionFileMutation();\n\t\t\t\t\tif (reconciledSessionFence && !isProbeSession) log$5.warn(`session fence reconciled after expected compaction mutation runId=${params.runId} sessionId=${params.sessionId} compactionCount=${compactionCountAfterPrompt}`);\n\t\t\t\t}\n\t\t\t\tawait sessionLockController.withSessionWriteLock(async () => {\n\t\t\t\t\tcompactionOccurredThisAttempt = compactionCountAfterPrompt > 0;';
+    if (!source.includes(oldBlock)) {
+      throw new Error('OpenClaw selection shape changed: compaction session fence anchor not found');
+    }
+    source = source.replace(oldBlock, newBlock);
+    changed = true;
+  }
+
+  if (changed) {
+    fs.writeFileSync(target, source, 'utf8');
+    console.log(`Applied OpenClaw local patch: ${path.relative(root, target)}`);
+  } else {
+    console.log(`OpenClaw local patch already applied: ${path.relative(root, target)}`);
+  }
 }
 
 function applyOpenAiHttpToolEventPatch() {

@@ -5,6 +5,7 @@
 > **Where this fits in the family**
 > - **Repo name:** `cotw-scout`
 > - **Form factor:** Desktop Electron app
+> - **Release source of truth:** this public mirror backs the lander, developer source setup, GitHub release DMGs, and beta packaging path. Runtime fixes from internal companion workspaces must be mirrored here before public packaging.
 > - See [TEMPLATES.md](TEMPLATES.md) for the two-template architecture (`template/` vs `bundled-template/`)
 
 A Code of the West agent harness for GPT 5.5: local memory, durable identity, and epistemic constraint.

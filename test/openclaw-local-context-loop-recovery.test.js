@@ -62,6 +62,8 @@ test('local OpenClaw patcher carries context-loop recovery patch', () => {
   assert.match(source, /mid_turn_precheck_fired/);
   assert.match(source, /mid_turn_recovery_resumed/);
   assert.match(source, /mid_turn_recovery_exhausted/);
+  assert.match(source, /applyCompactionSessionFencePatch/);
+  assert.match(source, /reconcileExpectedSessionFileMutation/);
   assert.match(source, /throw new MidTurnPrecheckSignal\(request\)/);
 });
 
@@ -179,6 +181,19 @@ test('recovery visibility includes archive events and bounded resume manifest me
   assert.match(source, /archiveIds: truncationResult\.archiveIds/);
   assert.match(source, /manifestId: manifest\.id/);
   assert.match(source, /mid_turn_recovery_resumed/);
+});
+
+test('compaction retry finalization reconciles only expected self-compaction transcript writes', () => {
+  const source = fs.readFileSync(findSelectionFile(), 'utf8');
+  assert.match(source, /async reconcileExpectedSessionFileMutation\(\)/);
+  assert.match(source, /if \(!fenceActive \|\| takeoverDetected\) return false;/);
+  assert.match(source, /const \{ lock, owned \} = await acquireWriteLock\(\);/);
+  assert.match(source, /fenceFingerprint = current;/);
+  assert.match(source, /const compactionCountAfterPrompt = getCompactionCount\(\);/);
+  assert.match(source, /if \(compactionCountAfterPrompt > 0\) \{/);
+  assert.match(source, /sessionLockController\.reconcileExpectedSessionFileMutation\(\)/);
+  assert.match(source, /session fence reconciled after expected compaction mutation/);
+  assert.match(source, /compactionOccurredThisAttempt = compactionCountAfterPrompt > 0;/);
 });
 
 
