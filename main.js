@@ -4819,6 +4819,16 @@ function recordLiveTurnOutcome(input) {
   return { outcomePacket, contextReview };
 }
 
+function scheduleLiveTurnOutcome(input) {
+  setImmediate(() => {
+    try {
+      recordLiveTurnOutcome(input);
+    } catch (err) {
+      console.warn('[Spine] Failed to record live turn outcome:', err.message);
+    }
+  });
+}
+
 function buildReadOnlyResponsibilityLeaseInput(input) {
   input = input || {};
   const leaseId = input.leaseId || `responsibility-lease:${input.lane || 'runtime'}:${Date.now()}`;
@@ -5501,29 +5511,6 @@ async function callGatewayHTTP(message, options = {}) {
           } catch (err) {
             console.warn('[AttachmentReceipts] Failed to record observation excerpt:', err.message);
           }
-          try {
-            recordLiveTurnOutcome({
-              requestId,
-              message: options.originalUserText || message,
-              response: fullContent,
-              toolEvents: observedToolEvents,
-              imageCount: Number.isFinite(options.imageCount)
-                ? options.imageCount
-                : (Array.isArray(options.images) ? options.images.length : 0),
-              mode: currentSessionMode,
-              startedAt: requestStartedAt,
-              completedAt: Date.now(),
-              seenDataEvents,
-              reconciled: streamReconciled,
-              completionObligation,
-              threadId: effectiveThreadId,
-              sessionId: currentSessionId,
-              intentSource: options.metadata?.synthetic_source || 'current_user_turn',
-              authorizationMode: options.metadata?.synthetic_source ? 'system_signal' : 'current_user_instruction'
-            });
-          } catch (err) {
-            console.warn('[Spine] Failed to record live turn outcome:', err.message);
-          }
         }
         if (!suppressMainChat) {
           if (conversationHistory.length > MAX_HISTORY_TURNS) {
@@ -5546,6 +5533,25 @@ async function callGatewayHTTP(message, options = {}) {
           });
           emitChatActivity({ phase: 'stream-done', requestId, fullContentLength: fullContent.length });
           mainWindow?.webContents.send('chat:stream-done', { content: fullContent, requestId, reconciled: streamReconciled, completionObligation });
+          scheduleLiveTurnOutcome({
+            requestId,
+            message: options.originalUserText || message,
+            response: fullContent,
+            toolEvents: observedToolEvents,
+            imageCount: Number.isFinite(options.imageCount)
+              ? options.imageCount
+              : (Array.isArray(options.images) ? options.images.length : 0),
+            mode: currentSessionMode,
+            startedAt: requestStartedAt,
+            completedAt: Date.now(),
+            seenDataEvents,
+            reconciled: streamReconciled,
+            completionObligation,
+            threadId: effectiveThreadId,
+            sessionId: currentSessionId,
+            intentSource: options.metadata?.synthetic_source || 'current_user_turn',
+            authorizationMode: options.metadata?.synthetic_source ? 'system_signal' : 'current_user_instruction'
+          });
         }
         resolve(fullContent);
       });

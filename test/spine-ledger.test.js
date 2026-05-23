@@ -33,7 +33,8 @@ const {
   listContextEligibilityReviews,
   listMaturationCandidatePackets,
   listResponsibilityLeasePackets,
-  listActiveResponsibilityLeases
+  listActiveResponsibilityLeases,
+  compactSpineLedgerFile
 } = require('../lib/spine-ledger');
 
 function tmpDir() {
@@ -389,6 +390,37 @@ test('snapshot dry-run maturation previews disappear once candidate is persisted
   assert.equal(snapshot.counts.dryRunMaturationPreviews, 0);
   assert.equal(snapshot.policy.mutationAuthorized, false);
   assert.equal(snapshot.policy.promptInjectionAuthorized, false);
+});
+
+test('spine ledger hot path compacts oversized review packets into an archive', () => {
+  const ledgerPath = tmpLedgerPath();
+  const events = Array.from({ length: 5 }, (_, index) => createOutcomeEventPacket({
+    eventId: `outcome-hot-path-${index}`,
+    status: 'observed',
+    createdAt: `2026-05-09T14:3${index}:00.000Z`
+  }));
+  fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
+  fs.writeFileSync(ledgerPath, JSON.stringify({
+    version: 1,
+    outcomeEvents: events,
+    governorDecisions: [],
+    contextEligibilityReviews: [],
+    maturationCandidates: [],
+    responsibilityLeases: []
+  }), 'utf8');
+
+  const result = compactSpineLedgerFile(ledgerPath, {
+    limits: { outcomeEvents: 2 },
+    now: '2026-05-09T15:00:00.000Z'
+  });
+  assert.equal(result.compacted, true);
+  assert.equal(result.archivedCount, 3);
+  assert.equal(result.counts.outcomeEvents, 2);
+  const compacted = readSpineLedger(ledgerPath);
+  assert.deepEqual(compacted.outcomeEvents.map((event) => event.eventId), ['outcome-hot-path-4', 'outcome-hot-path-3']);
+  const archived = fs.readFileSync(result.archivePath, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+  assert.equal(archived.length, 3);
+  assert.deepEqual(archived.map((entry) => entry.packet.eventId), ['outcome-hot-path-2', 'outcome-hot-path-1', 'outcome-hot-path-0']);
 });
 
 test('appendResponsibilityLeasePacket stores candidates without activating them', () => {
