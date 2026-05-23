@@ -145,6 +145,9 @@ test('live chat turns produce append-only outcome ledger packets without new aut
     reconciled: false,
     threadId: 'session_abc',
     sessionId: 'session_main',
+    exchangeId: 'ex_test',
+    turnId: 'turn_test',
+    runId: 'run_test',
   });
 
   assert.equal(packet.eventId, 'live_turn:stream_test_123');
@@ -152,6 +155,9 @@ test('live chat turns produce append-only outcome ledger packets without new aut
   assert.equal(packet.authority.authorizationMode, 'current_user_instruction');
   assert.deepEqual(JSON.parse(JSON.stringify(packet.action.toolsUsed)), ['read', 'write']);
   assert.equal(packet.action.toolCount, 2);
+  assert.equal(packet.source.exchangeId, 'ex_test');
+  assert.equal(packet.action.exchangeId, 'ex_test');
+  assert.equal(packet.observed.runId, 'run_test');
   assert.equal(packet.observed.durationMs, 550);
   assert.equal(packet.observed.completionObligation.required, true);
   assert.deepEqual(JSON.parse(JSON.stringify(packet.observed.completionObligation.reasonCodes)), ['foreground_tool_use']);

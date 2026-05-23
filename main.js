@@ -82,6 +82,12 @@ const { isGatewayHandoffLatched } = require('./lib/gateway-handoff-latch');
 const { resolveRestartContinuationResultPath } = require('./lib/gateway-service-restart-continuation');
 const { buildContinuityHealthReport } = require('./lib/continuity-compaction-health');
 const { buildRuntimeLoadReport } = require('./lib/runtime-load-report');
+const { buildRuntimeRetentionReport } = require('./lib/runtime-retention-audit');
+const { createExchangeContext, createRunId } = require('./lib/exchange-spine');
+const { appendExchangeTrace, getLatestExchangeId, readExchangeTrace } = require('./lib/exchange-trace-store');
+const { runDiagnosticTriage } = require('./lib/diagnostic-triage');
+const { buildRecentSymptomsReport } = require('./lib/diagnostic-recurrence');
+const { exportDiagnosticBundle } = require('./lib/diagnostic-bundle');
 const {
   promoteScaffoldProposal,
   promoteHarnessRefinerProposal,
@@ -129,6 +135,11 @@ const userDataPath = app.getPath('userData');
 const workspacePath = path.join(userDataPath, 'workspace');
 const configPath = path.join(userDataPath, 'cotw-config.json');
 process.env.COTW_RUNTIME_METRICS_PATH ||= path.join(userDataPath, 'runtime-metrics.jsonl');
+const diagnosticTracePath = path.join(userDataPath, 'diagnostics', 'exchange-trace.jsonl');
+const diagnosticReceiptsPath = path.join(userDataPath, 'diagnostics', 'diagnostic-receipts.jsonl');
+const diagnosticBundlesPath = path.join(userDataPath, 'diagnostics', 'bundles');
+const currentRunId = createRunId();
+let lastForegroundExchangeId = '';
 
 // Early migration: copy user data from old app directories to current userData path.
 // Handles two legacy names: cotw-scout (original) and cotw-scout (before app rename).
@@ -355,6 +366,7 @@ function findAvailablePort(startPort, maxAttempts = 5) {
 }
 let conversationHistory = [];
 let activeRequest = null; // Track in-flight HTTP request for stop
+let activeRequestTrace = null;
 let pendingToolCalls = []; // Track interrupted tool calls across restarts
 let activeStreamContent = ''; // Partial content from in-flight stream (for recovery on stop)
 let activeStreamMessage = ''; // The user message that started the in-flight stream
@@ -2305,6 +2317,129 @@ ipcMain.handle('openclaw:runtime-load-report', () => {
   }
 });
 
+ipcMain.handle('openclaw:runtime-retention-report', () => {
+  try {
+    return {
+      ok: true,
+      readOnly: true,
+      report: buildRuntimeRetentionReport({
+        userDataPath,
+        openclawHome: openclawProfileDir,
+        workspacePath,
+        pluginsPath,
+        agentId: 'trail-guide',
+      })
+    };
+  } catch (err) {
+    return { ok: false, readOnly: true, error: String(err.message || err) };
+  }
+});
+
+ipcMain.handle('diagnostics:get-exchange-trace', (_event, input = {}) => {
+  try {
+    const exchangeId = input.exchangeId || getLatestExchangeId(diagnosticTracePath);
+    return {
+      ok: true,
+      readOnly: true,
+      exchangeId,
+      entries: exchangeId ? readExchangeTrace(diagnosticTracePath, { exchangeId, limit: input.limit || 500 }) : []
+    };
+  } catch (err) {
+    return { ok: false, readOnly: true, error: String(err.message || err) };
+  }
+});
+
+ipcMain.handle('diagnostics:run-triage', (_event, input = {}) => {
+  try {
+    const scope = input.scope || 'last_response';
+    const exchangeId = input.exchangeId || (scope === 'last_response' ? lastForegroundExchangeId : '') || getLatestExchangeId(diagnosticTracePath);
+    const sinceMs = scope === 'last_10_minutes' ? Date.now() - (10 * 60 * 1000) : 0;
+    const entries = readExchangeTrace(diagnosticTracePath, {
+      exchangeId: scope === 'last_10_minutes' ? '' : exchangeId,
+      sinceMs,
+      limit: input.limit || 1000
+    });
+    const report = runDiagnosticTriage({
+      entries,
+      scope,
+      symptoms: input.symptoms || [],
+    });
+    appendDiagnosticReceipt(report);
+    return report;
+  } catch (err) {
+    return { ok: false, readOnly: true, error: String(err.message || err) };
+  }
+});
+
+ipcMain.handle('diagnostics:get-recent-symptoms', (_event, input = {}) => {
+  try {
+    const sinceMs = input.sinceMs || Date.now() - Math.max(5 * 60 * 1000, Number(input.windowMs || 60 * 60 * 1000));
+    const entries = readExchangeTrace(diagnosticTracePath, {
+      sinceMs,
+      limit: input.limit || 5000
+    });
+    return buildRecentSymptomsReport({ entries, sinceMs });
+  } catch (err) {
+    return { ok: false, readOnly: true, error: String(err.message || err) };
+  }
+});
+
+ipcMain.handle('diagnostics:export-bundle', (_event, input = {}) => {
+  try {
+    const scope = input.scope || 'last_response';
+    const exchangeId = input.exchangeId || (scope === 'last_response' ? lastForegroundExchangeId : '') || getLatestExchangeId(diagnosticTracePath);
+    const sinceMs = Number(input.sinceMs || 0) || 0;
+    const result = exportDiagnosticBundle({
+      tracePath: diagnosticTracePath,
+      receiptsPath: diagnosticReceiptsPath,
+      outputRoot: diagnosticBundlesPath,
+      exchangeId: scope === 'last_10_minutes' ? '' : exchangeId,
+      sinceMs: scope === 'last_10_minutes' ? Date.now() - (10 * 60 * 1000) : sinceMs,
+      limit: input.limit || 1000,
+      bundleId: input.bundleId || ''
+    });
+    return {
+      ok: true,
+      readOnly: true,
+      bundleId: result.bundleId,
+      bundleDir: result.bundleDir,
+      manifest: result.manifest,
+      trainingApproval: false,
+      adapterPromotionAuthorized: false
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      readOnly: true,
+      error: String(err.message || err),
+      leakReport: err.leakReport || null,
+      trainingApproval: false,
+      adapterPromotionAuthorized: false
+    };
+  }
+});
+
+ipcMain.handle('diagnostics:renderer-event', (_event, input = {}) => {
+  try {
+    const result = traceExchange({
+      exchangeId: input.exchangeId || lastForegroundExchangeId,
+      turnId: input.turnId || '',
+      runId: currentRunId,
+      sessionId: currentSessionId,
+      threadId: currentThreadId,
+      subsystem: 'renderer',
+      eventType: input.eventType || 'renderer_event',
+      status: input.status || '',
+      requestId: input.requestId || '',
+      durationMs: input.durationMs,
+      note: input.note || ''
+    });
+    return { ok: result.ok !== false, readOnly: false };
+  } catch (err) {
+    return { ok: false, error: String(err.message || err) };
+  }
+});
+
 ipcMain.handle('canvas:get-embed-document', async (_event, ref) => {
   try {
     const safeRef = String(ref || '').trim();
@@ -2509,14 +2644,29 @@ ipcMain.handle('chat:send', async (_event, messageOrObj) => {
       image = messageOrObj?.image; // Legacy single-image payload: { base64, mimeType }
       attachments = messageOrObj?.attachments;
     }
+    const exchangeContext = createExchangeContext({
+      sessionId: currentSessionId,
+      threadId: currentThreadId,
+      mode: currentSessionMode,
+      runId: currentRunId,
+    });
+    lastForegroundExchangeId = exchangeContext.exchangeId;
+    traceExchange({
+      ...exchangeContext,
+      subsystem: 'electron',
+      eventType: 'exchange_created',
+      status: 'started',
+      details: {
+        mode: currentSessionMode,
+        attachmentCount: Array.isArray(attachments) ? attachments.length : (image ? 1 : 0)
+      }
+    });
     const rawUserText = text;
     const incomingAttachments = normalizeChatAttachments([
       ...(Array.isArray(attachments) ? attachments : []),
       ...(image ? [{ ...image, kind: 'image' }] : []),
     ]);
-    const attachmentTurnId = incomingAttachments.length
-      ? `turn_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-      : null;
+    const attachmentTurnId = incomingAttachments.length ? exchangeContext.turnId : null;
     const attachmentReceipts = incomingAttachments.length
       ? createAttachmentReceipts({
           db: getContinuityDB(),
@@ -2525,6 +2675,7 @@ ipcMain.handle('chat:send', async (_event, messageOrObj) => {
           sessionId: currentSessionId,
           projectId: currentSessionProjectId,
           turnId: attachmentTurnId,
+          exchangeId: exchangeContext.exchangeId,
         })
       : [];
 
@@ -2810,6 +2961,7 @@ ipcMain.handle('chat:send', async (_event, messageOrObj) => {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
         response = await callGatewayHTTP(text, {
+          exchangeContext,
           images: gatewayImages,
           originalUserText: rawUserText,
           imageCount: attachedImages ? attachedImages.length : 0,
@@ -2874,6 +3026,7 @@ ipcMain.handle('chat:send', async (_event, messageOrObj) => {
           fallbackText: response,
         });
         const continued = await callGatewayHTTP(continuationPrompt, {
+          exchangeContext,
           hideUserFromHistory: true,
           disableEvidenceRecovery: true,
           originalUserText: rawUserText,
@@ -4710,6 +4863,9 @@ function buildLiveTurnOutcomeInput(input) {
     reconciled = false,
     threadId = null,
     sessionId = null,
+    exchangeId = null,
+    turnId = null,
+    runId = null,
     intentSource = 'current_user_turn',
     authorizationMode = 'current_user_instruction',
     completionObligation = null
@@ -4732,7 +4888,10 @@ function buildLiveTurnOutcomeInput(input) {
     source: {
       sourceType: 'runtime_event',
       sourceHandle: requestId,
-      evidenceClass: 'direct_observation'
+      evidenceClass: 'direct_observation',
+      exchangeId,
+      turnId,
+      runId
     },
     intent: {
       source: intentSource,
@@ -4754,10 +4913,16 @@ function buildLiveTurnOutcomeInput(input) {
         phase: String(event?.phase || 'observed').slice(0, 40)
       })),
       threadId,
-      sessionId
+      sessionId,
+      exchangeId,
+      turnId,
+      runId
     },
     observed: {
       completed: true,
+      exchangeId,
+      turnId,
+      runId,
       responseChars: String(response || '').length,
       durationMs,
       seenDataEvents,
@@ -4897,6 +5062,12 @@ async function callGatewayHTTP(message, options = {}) {
   const url = `http://localhost:${gatewayPort}/v1/chat/completions`;
   const requestId = `stream_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const requestStartedAt = Date.now();
+  const exchangeContext = options.exchangeContext || createExchangeContext({
+    sessionId: currentSessionId,
+    threadId: currentThreadId,
+    mode: currentSessionMode,
+    runId: currentRunId,
+  });
 
   // Isolated mode — Phase C of the contemplation port. For autonomous
   // background tasks that should NOT surface in the main chat UI or
@@ -4948,6 +5119,9 @@ async function callGatewayHTTP(message, options = {}) {
       codeMode: !suppressMainChat && (trainingGroundsActive || false),
       thread_id: effectiveThreadId,
       electron_request_id: requestId,
+      exchange_id: exchangeContext.exchangeId,
+      turn_id: exchangeContext.turnId,
+      run_id: currentRunId,
       ...(!suppressMainChat && gatewayRestarted ? { session_resume: true } : {}),
       ...(isolated ? { isolated: true, isolation_tag: options.isolationTag || 'task' } : {}),
       ...(options.metadata || {})
@@ -4962,8 +5136,21 @@ async function callGatewayHTTP(message, options = {}) {
     activeStreamContent = '';
     activeStreamMessage = hideUserFromHistory ? '' : message;
     emitChatActivity({ phase: 'request-start', requestId });
+    traceExchange({
+      ...exchangeContext,
+      subsystem: 'gateway',
+      eventType: 'request_start',
+      status: 'started',
+      requestId,
+      details: {
+        gatewaySessionKey,
+        isolated,
+        internalOnly,
+      }
+    });
     logStreamDebug('request-start', {
       requestId,
+      exchangeId: exchangeContext.exchangeId,
       messageLength: String(message || '').length,
       sessionId: currentSessionId,
       threadId: effectiveThreadId,
@@ -5003,6 +5190,7 @@ async function callGatewayHTTP(message, options = {}) {
       let streamCompleted = false;
       let streamError = null;
       let seenDataEvents = 0;
+      let firstTokenTraced = false;
       let sawToolCall = false;
       let streamReconciled = false;
       let completionObligationFallback = false;
@@ -5095,6 +5283,17 @@ async function callGatewayHTTP(message, options = {}) {
               });
             }
             if (delta) {
+              if (!firstTokenTraced && !suppressMainChat) {
+                firstTokenTraced = true;
+                traceExchange({
+                  ...exchangeContext,
+                  subsystem: 'gateway',
+                  eventType: 'first_token',
+                  status: 'observed',
+                  requestId,
+                  durationMs: Date.now() - requestStartedAt
+                });
+              }
               // Diagnostic: detect missing space after sentence-ending punctuation
               if (fullContent.length > 0) {
                 const lastChar = fullContent[fullContent.length - 1];
@@ -5167,6 +5366,15 @@ async function callGatewayHTTP(message, options = {}) {
                   if (!isDuplicateStart) {
                     const toolArgs = eventData.args || eventData.meta || eventData.command || eventData.query;
                     noteObservedTool(name, `openclaw_event:${stream}`, 'start', { args: toolArgs, result: eventData.result });
+                    traceExchange({
+                      ...exchangeContext,
+                      subsystem: 'tool',
+                      eventType: 'tool_start',
+                      status: 'started',
+                      requestId,
+                      localId: toolCallId,
+                      note: name,
+                    });
                     recordObservedRuntimeToolPreflight(name, toolArgs, `openclaw_event:${stream}`, toolCallId);
                     if (!suppressMainChat) {
                       pendingToolCalls.push({ name, args: toolArgs, startedAt: Date.now() });
@@ -5180,6 +5388,17 @@ async function callGatewayHTTP(message, options = {}) {
                   activeGatewayToolCalls.delete(toolCallId);
                   noteObservedTool(completedName, `openclaw_event:${stream}`, 'done', { args: eventData.args || eventData.meta, result: eventData.result || eventData });
                   if (!suppressMainChat) {
+                    traceExchange({
+                      ...exchangeContext,
+                      subsystem: 'tool',
+                      eventType: 'tool_done',
+                      status: 'done',
+                      requestId,
+                      localId: toolCallId,
+                      note: completedName,
+                    });
+                  }
+                  if (!suppressMainChat) {
                     emitChatActivity({ phase: 'tool-call-done', requestId, name: completedName });
                     mainWindow?.webContents.send('chat:tool-call', { name: completedName, status: 'done' });
                   }
@@ -5187,6 +5406,15 @@ async function callGatewayHTTP(message, options = {}) {
                   sawToolCall = true;
                   const toolArgs = eventData.command || eventData.output;
                   noteObservedTool(name, `openclaw_event:${stream}`, 'observed', { args: toolArgs, result: eventData.result || eventData });
+                  traceExchange({
+                    ...exchangeContext,
+                    subsystem: 'tool',
+                    eventType: 'tool_observed',
+                    status: 'observed',
+                    requestId,
+                    localId: toolCallId,
+                    note: name,
+                  });
                   recordObservedRuntimeToolPreflight(name, toolArgs, `openclaw_event:${stream}`, toolCallId);
                   if (!suppressMainChat) {
                     logStreamDebug('tool-call-observed', { requestId, name, source: `openclaw_event:${stream}` });
@@ -5203,6 +5431,15 @@ async function callGatewayHTTP(message, options = {}) {
                 if (name) {
                   const toolArgs = tc.function?.arguments;
                   noteObservedTool(name, 'openai_delta', 'start', { args: toolArgs });
+                  traceExchange({
+                    ...exchangeContext,
+                    subsystem: 'tool',
+                    eventType: 'tool_start',
+                    status: 'started',
+                    requestId,
+                    localId: tc.id || name,
+                    note: name,
+                  });
                   recordObservedRuntimeToolPreflight(name, toolArgs, 'openai_delta', tc.id || name);
                   if (!suppressMainChat) {
                     pendingToolCalls.push({ name, args: toolArgs, startedAt: Date.now() });
@@ -5293,9 +5530,19 @@ async function callGatewayHTTP(message, options = {}) {
           streamError = decorateGatewayError(streamError, requestStartedAt);
           if (!suppressMainChat) {
             lastMainStreamFailureAt = Date.now();
+            traceExchange({
+              ...exchangeContext,
+              subsystem: 'gateway',
+              eventType: 'stream_error',
+              status: 'error',
+              requestId,
+              durationMs: Date.now() - requestStartedAt,
+              errorCode: streamError.code || 'stream_error',
+              note: streamError.message,
+            });
             logStreamDebug('stream-error', { requestId, error: streamError.message, events: seenDataEvents });
             emitChatActivity({ phase: 'stream-error', requestId, error: streamError.message });
-            mainWindow?.webContents.send('chat:stream-error', { error: streamError.message });
+            mainWindow?.webContents.send('chat:stream-error', { error: streamError.message, requestId, exchangeId: exchangeContext.exchangeId });
           }
           reject(streamError);
           return;
@@ -5305,9 +5552,19 @@ async function callGatewayHTTP(message, options = {}) {
           const err = decorateGatewayError(new Error('Gateway stream ended before a final response marker'), requestStartedAt);
           if (!suppressMainChat) {
             lastMainStreamFailureAt = Date.now();
+            traceExchange({
+              ...exchangeContext,
+              subsystem: 'gateway',
+              eventType: 'stream_error',
+              status: 'error',
+              requestId,
+              durationMs: Date.now() - requestStartedAt,
+              errorCode: err.code || 'missing_final_marker',
+              note: err.message,
+            });
             logStreamDebug('stream-error', { requestId, error: err.message, events: seenDataEvents, fullContentLength: fullContent.length });
             emitChatActivity({ phase: 'stream-error', requestId, error: err.message, fullContentLength: fullContent.length });
-            mainWindow?.webContents.send('chat:stream-error', { error: err.message });
+            mainWindow?.webContents.send('chat:stream-error', { error: err.message, requestId, exchangeId: exchangeContext.exchangeId });
           }
           reject(err);
           return;
@@ -5412,9 +5669,19 @@ async function callGatewayHTTP(message, options = {}) {
           const err = decorateGatewayError(new Error('Gateway stream ended with an empty final response'), requestStartedAt);
           if (!suppressMainChat) {
             lastMainStreamFailureAt = Date.now();
+            traceExchange({
+              ...exchangeContext,
+              subsystem: 'gateway',
+              eventType: 'stream_error',
+              status: 'error',
+              requestId,
+              durationMs: Date.now() - requestStartedAt,
+              errorCode: err.code || 'empty_final_response',
+              note: err.message,
+            });
             logStreamDebug('stream-error', { requestId, error: err.message, events: seenDataEvents });
             emitChatActivity({ phase: 'stream-error', requestId, error: err.message });
-            mainWindow?.webContents.send('chat:stream-error', { error: err.message });
+            mainWindow?.webContents.send('chat:stream-error', { error: err.message, requestId, exchangeId: exchangeContext.exchangeId });
           }
           reject(err);
           return;
@@ -5524,15 +5791,32 @@ async function callGatewayHTTP(message, options = {}) {
           }
 
           // Signal stream complete
+          traceExchange({
+            ...exchangeContext,
+            subsystem: 'gateway',
+            eventType: 'stream_done',
+            status: 'done',
+            requestId,
+            durationMs: Date.now() - requestStartedAt,
+            count: seenDataEvents,
+            details: {
+              fullContentLength: fullContent.length,
+              reconciled: streamReconciled,
+              sawToolCall,
+            }
+          });
           logStreamDebug('stream-done', {
             requestId,
+            exchangeId: exchangeContext.exchangeId,
             events: seenDataEvents,
             fullContentLength: fullContent.length,
             reconciled: streamReconciled,
             contentPreview: fullContent.slice(0, 500),
           });
           emitChatActivity({ phase: 'stream-done', requestId, fullContentLength: fullContent.length });
-          mainWindow?.webContents.send('chat:stream-done', { content: fullContent, requestId, reconciled: streamReconciled, completionObligation });
+          mainWindow?.webContents.send('chat:stream-done', { content: fullContent, requestId, exchangeId: exchangeContext.exchangeId, turnId: exchangeContext.turnId, reconciled: streamReconciled, completionObligation });
+          activeRequest = null;
+          activeRequestTrace = null;
           scheduleLiveTurnOutcome({
             requestId,
             message: options.originalUserText || message,
@@ -5549,6 +5833,9 @@ async function callGatewayHTTP(message, options = {}) {
             completionObligation,
             threadId: effectiveThreadId,
             sessionId: currentSessionId,
+            exchangeId: exchangeContext.exchangeId,
+            turnId: exchangeContext.turnId,
+            runId: currentRunId,
             intentSource: options.metadata?.synthetic_source || 'current_user_turn',
             authorizationMode: options.metadata?.synthetic_source ? 'system_signal' : 'current_user_instruction'
           });
@@ -5557,12 +5844,50 @@ async function callGatewayHTTP(message, options = {}) {
       });
     });
 
-    req.on('error', err => reject(decorateGatewayError(err, requestStartedAt)));
-    req.on('timeout', () => { req.destroy(); reject(decorateGatewayError(new Error('Gateway request timed out'), requestStartedAt)); });
+    req.on('error', err => {
+      if (!suppressMainChat) {
+        const decorated = decorateGatewayError(err, requestStartedAt);
+        traceExchange({
+          ...exchangeContext,
+          subsystem: 'gateway',
+          eventType: 'request_error',
+          status: 'error',
+          requestId,
+          durationMs: Date.now() - requestStartedAt,
+          errorCode: decorated.code || err.code || 'request_error',
+          note: decorated.message,
+        });
+        activeRequest = null;
+        activeRequestTrace = null;
+        reject(decorated);
+      } else {
+        reject(decorateGatewayError(err, requestStartedAt));
+      }
+    });
+    req.on('timeout', () => {
+      req.destroy();
+      const err = decorateGatewayError(new Error('Gateway request timed out'), requestStartedAt);
+      if (!suppressMainChat) {
+        traceExchange({
+          ...exchangeContext,
+          subsystem: 'gateway',
+          eventType: 'request_timeout',
+          status: 'error',
+          requestId,
+          durationMs: Date.now() - requestStartedAt,
+          errorCode: err.code || 'timeout',
+          note: err.message,
+        });
+        activeRequest = null;
+        activeRequestTrace = null;
+      }
+      reject(err);
+    });
     // Isolated runs don't register activeRequest — the main-chat Stop button
     // controls the main session, not background tasks. If we registered here,
     // a user Stop during a contemplation run would cancel the wrong request.
     if (!suppressMainChat) {
+      activeRequestTrace = { ...exchangeContext, requestId, requestStartedAt };
       activeRequest = () => { req.destroy(); reject(new Error('Request aborted by user')); };
     }
     req.write(payload);
@@ -5572,6 +5897,15 @@ async function callGatewayHTTP(message, options = {}) {
 
 ipcMain.handle('chat:stop', () => {
   if (activeRequest) {
+    if (activeRequestTrace) {
+      traceExchange({
+        ...activeRequestTrace,
+        subsystem: 'renderer',
+        eventType: 'stop_requested',
+        status: 'interrupted',
+        durationMs: Date.now() - activeRequestTrace.requestStartedAt,
+      });
+    }
     // Preserve partial exchange in conversation history so the agent has context
     // on the next message. Without this, the agent has amnesia about interrupted work.
     if (activeStreamMessage) {
@@ -5589,6 +5923,7 @@ ipcMain.handle('chat:stop', () => {
     checkpointConversationHistory();
     activeRequest();
     activeRequest = null;
+    activeRequestTrace = null;
     pendingToolCalls = [];
     activeStreamContent = '';
     activeStreamMessage = '';
@@ -7035,6 +7370,43 @@ function emitChatActivity(data = {}) {
     at: Date.now(),
     ...data,
   });
+}
+
+function traceExchange(event = {}) {
+  const result = appendExchangeTrace(diagnosticTracePath, {
+    runId: currentRunId,
+    sessionId: currentSessionId,
+    threadId: currentThreadId,
+    ...event,
+  });
+  if (result.ok === false && result.error) {
+    console.warn('[Diagnostics] Failed to write exchange trace:', result.error);
+  }
+  return result;
+}
+
+function appendDiagnosticReceipt(report = {}) {
+  try {
+    fs.mkdirSync(path.dirname(diagnosticReceiptsPath), { recursive: true });
+    const receipt = {
+      schemaVersion: 1,
+      type: 'diagnostic_triage_receipt',
+      id: `diagnostic-triage-${Date.now().toString(36)}`,
+      createdAt: new Date().toISOString(),
+      exchangeIds: report.exchangeIds || [],
+      scope: report.scope || '',
+      symptoms: report.symptoms || [],
+      likelyIssue: report.likelyIssue || '',
+      severity: report.severity || '',
+      confidence: report.confidence ?? null,
+      readOnly: true,
+      trainingApproval: false,
+      adapterPromotionAuthorized: false
+    };
+    fs.appendFileSync(diagnosticReceiptsPath, JSON.stringify(receipt) + '\n');
+  } catch (err) {
+    console.warn('[Diagnostics] Failed to write diagnostic receipt:', err.message);
+  }
 }
 
 function logStreamDebug(event, data = {}) {

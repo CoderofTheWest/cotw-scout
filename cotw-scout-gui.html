@@ -3226,6 +3226,40 @@ html, body {
       </div>
     </div>
 
+    <!-- Retention Health -->
+    <div style="margin-bottom:24px;">
+      <div style="font-family:var(--font-heading); font-size:13px; margin-bottom:8px; color:var(--accent);">Retention Health</div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <span style="font-size:13px;">Runtime artifact lifecycle</span>
+          <span id="runtimeRetentionSummary" style="font-size:11px; color:var(--text-dim); text-align:right;">Checking...</span>
+        </div>
+        <div id="runtimeRetentionHealth" style="font-size:11px; color:var(--text-dim); margin-top:6px; line-height:1.5;">Reading local retention audit...</div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;">
+          <button onclick="loadRuntimeRetentionReport()" style="padding:5px 10px;font-size:11px;background:none;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">Refresh retention</button>
+        </div>
+        <div style="font-size:11px; color:var(--text-dim); margin-top:8px; line-height:1.5;">Read-only. This audits lifecycle pressure and research data; it does not rotate, archive, delete, train, or inject context.</div>
+      </div>
+    </div>
+
+    <!-- Diagnostics -->
+    <div style="margin-bottom:24px;">
+      <div style="font-family:var(--font-heading); font-size:13px; margin-bottom:8px; color:var(--accent);">Diagnostics</div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <span style="font-size:13px;">Exchange trace</span>
+          <span id="diagnosticsSummary" style="font-size:11px; color:var(--text-dim); text-align:right;">Ready</span>
+        </div>
+        <div id="diagnosticsHealth" style="font-size:11px; color:var(--text-dim); margin-top:6px; line-height:1.5;">Run a read-only triage on the latest response.</div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;">
+          <button onclick="loadDiagnosticsTriage()" style="padding:5px 10px;font-size:11px;background:none;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">Diagnose last response</button>
+          <button onclick="loadRecentDiagnosticSymptoms()" style="padding:5px 10px;font-size:11px;background:none;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">Review recent symptoms</button>
+          <button onclick="exportDiagnosticBundle()" style="padding:5px 10px;font-size:11px;background:none;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">Export diagnostic bundle</button>
+        </div>
+        <div style="font-size:11px; color:var(--text-dim); margin-top:8px; line-height:1.5;">Read-only. Uses compact exchange receipts; it does not change memory, harness state, or training data.</div>
+      </div>
+    </div>
+
     <!-- Voice & Speech -->
     <div style="margin-bottom:24px;">
       <div style="font-family:var(--font-heading); font-size:13px; margin-bottom:8px; color:var(--accent);">Voice &amp; Speech</div>
@@ -4662,6 +4696,13 @@ function formatRuntimeLoadStatus(status) {
   return status || 'unknown';
 }
 
+function formatRetentionStatus(status) {
+  if (status === 'no_data') return 'no data yet';
+  if (status === 'over_budget') return 'over budget';
+  if (status === 'near_budget') return 'near budget';
+  return status || 'unknown';
+}
+
 async function loadRuntimeLoadReport() {
   const summaryEl = document.getElementById('runtimeLoadSummary');
   const healthEl = document.getElementById('runtimeLoadHealth');
@@ -4725,6 +4766,174 @@ async function loadRuntimeLoadReport() {
     summaryEl.textContent = 'Error';
     healthEl.textContent = err?.message || String(err);
   }
+}
+
+async function loadRuntimeRetentionReport() {
+  const summaryEl = document.getElementById('runtimeRetentionSummary');
+  const healthEl = document.getElementById('runtimeRetentionHealth');
+  if (!summaryEl || !healthEl || !isElectron || !window.cotw.getRuntimeRetentionReport) return;
+  summaryEl.textContent = 'Checking...';
+  healthEl.textContent = 'Reading local retention audit...';
+  try {
+    const result = await window.cotw.getRuntimeRetentionReport();
+    if (!result?.ok) {
+      summaryEl.textContent = 'Error';
+      healthEl.textContent = result?.error || 'Runtime retention report unavailable.';
+      return;
+    }
+    const report = result.report || {};
+    const summary = report.summary || {};
+    const status = report.status || 'unknown';
+    const classes = Array.isArray(report.artifactClasses) ? report.artifactClasses : [];
+    const topClasses = classes.slice().sort((a, b) => Number(b.totalBytes || 0) - Number(a.totalBytes || 0)).slice(0, 4);
+    const topFiles = Array.isArray(report.topFiles) ? report.topFiles.slice(0, 3) : [];
+    const policyViolations = Array.isArray(report.policyViolations) ? report.policyViolations : [];
+    const digest = report.researchDigest || {};
+    const byLifecycle = report.byLifecycleTier || {};
+
+    summaryEl.innerHTML = `<span style="color:${runtimeLoadStatusColor(status)};">${escapeHTML(formatRetentionStatus(status))}</span> &middot; ${escapeHTML(formatBytesCompact(summary.totalBytes || 0))}`;
+
+    const lifecycleLine = ['hot', 'warm', 'cold', 'research_export', 'training_candidate']
+      .map(tier => `${tier.replaceAll('_', ' ')} ${formatBytesCompact(byLifecycle[tier]?.bytes || 0)}`)
+      .join(' · ');
+    const classLines = topClasses.map(entry => (
+      `<div>${escapeHTML(entry.label || entry.id)}: ${escapeHTML(formatBytesCompact(entry.totalBytes || 0))} &middot; ${escapeHTML(String(entry.fileCount || 0))} file${entry.fileCount === 1 ? '' : 's'} &middot; ${escapeHTML(entry.status || 'unknown')}</div>`
+    )).join('');
+    const fileLines = topFiles.map(file => (
+      `<div>${escapeHTML(file.classLabel || file.classId)}: ${escapeHTML(formatBytesCompact(file.bytes || 0))} &middot; ${escapeHTML(file.displayPath || file.relativePath || '')}</div>`
+    )).join('');
+    const pressureLine = policyViolations[0]
+      ? `<div>Policy pressure: ${escapeHTML(policyViolations[0].classLabel || policyViolations[0].classId)} ${escapeHTML(policyViolations[0].type || 'over budget')}</div>`
+      : '<div>Policy pressure: none recorded</div>';
+
+    healthEl.innerHTML = `
+      <div>Classes: ${escapeHTML(String(summary.classesWithData || 0))}/${escapeHTML(String(summary.artifactClassCount || 0))} with data &middot; Files: ${escapeHTML(String(summary.fileCount || 0))} &middot; Violations: ${escapeHTML(String(summary.policyViolationCount || 0))}</div>
+      <div>${escapeHTML(lifecycleLine)}</div>
+      <div>Research digest: ${escapeHTML(String(digest.fileCount || 0))} files &middot; ${escapeHTML(formatBytesCompact(digest.totalBytes || 0))} &middot; training approval ${digest.trainingApproval ? 'true' : 'false'}</div>
+      ${pressureLine}
+      ${classLines || '<div>No registered artifacts found yet.</div>'}
+      ${fileLines}
+    `;
+  } catch (err) {
+    summaryEl.textContent = 'Error';
+    healthEl.textContent = err?.message || String(err);
+  }
+}
+
+async function loadDiagnosticsTriage() {
+  const summaryEl = document.getElementById('diagnosticsSummary');
+  const healthEl = document.getElementById('diagnosticsHealth');
+  if (!summaryEl || !healthEl || !isElectron || !window.cotw.runDiagnosticsTriage) return;
+  summaryEl.textContent = 'Checking...';
+  healthEl.textContent = 'Reading latest exchange trace...';
+  try {
+    const result = await window.cotw.runDiagnosticsTriage({
+      scope: 'last_response',
+      symptoms: ['hang', 'stop_button_stuck']
+    });
+    if (!result?.ok) {
+      summaryEl.textContent = 'Error';
+      healthEl.textContent = result?.error || 'Diagnostics unavailable.';
+      return;
+    }
+    const severity = result.severity || 'unknown';
+    const issue = result.likelyIssue || 'unknown';
+    const confidence = Number.isFinite(Number(result.confidence)) ? `${Math.round(Number(result.confidence) * 100)}%` : 'unknown';
+    const timings = result.timings || {};
+    const exchangeText = (result.exchangeIds || []).slice(0, 1).join(', ') || 'none';
+    summaryEl.innerHTML = `<span style="color:${diagnosticSeverityColor(severity)};">${escapeHTML(severity)}</span> &middot; ${escapeHTML(confidence)}`;
+    healthEl.innerHTML = `
+      <div>Issue: ${escapeHTML(issue.replaceAll('_', ' '))}</div>
+      <div>Exchange: ${escapeHTML(exchangeText)}</div>
+      <div>Timing: first token ${formatDiagnosticMs(timings.requestToFirstTokenMs)} &middot; stream done ${formatDiagnosticMs(timings.requestToDoneMs)} &middot; stop clear ${formatDiagnosticMs(timings.doneToStopClearedMs)}</div>
+      <div>Next: ${escapeHTML(result.suggestedNextAction || 'No immediate action.')}</div>
+    `;
+  } catch (err) {
+    summaryEl.textContent = 'Error';
+    healthEl.textContent = err?.message || String(err);
+  }
+}
+
+async function loadRecentDiagnosticSymptoms() {
+  const summaryEl = document.getElementById('diagnosticsSummary');
+  const healthEl = document.getElementById('diagnosticsHealth');
+  if (!summaryEl || !healthEl || !isElectron || !window.cotw.getRecentDiagnosticSymptoms) return;
+  summaryEl.textContent = 'Checking...';
+  healthEl.textContent = 'Reading recent exchange symptoms...';
+  try {
+    const result = await window.cotw.getRecentDiagnosticSymptoms({ windowMs: 60 * 60 * 1000 });
+    if (!result?.ok) {
+      summaryEl.textContent = 'Error';
+      healthEl.textContent = result?.error || 'Recent diagnostics unavailable.';
+      return;
+    }
+    const symptoms = Array.isArray(result.symptoms) ? result.symptoms : [];
+    const recurring = Array.isArray(result.recurringSymptoms) ? result.recurringSymptoms : [];
+    summaryEl.innerHTML = `${escapeHTML(String(recurring.length))} recurring &middot; ${escapeHTML(String(result.exchangeCount || 0))} exchanges`;
+    if (!symptoms.length) {
+      healthEl.innerHTML = `
+        <div>No recent diagnostic symptoms found.</div>
+        <div>Events: ${escapeHTML(String(result.eventCount || 0))}</div>
+      `;
+      return;
+    }
+    const symptomLines = symptoms.slice(0, 4).map((symptom) => {
+      const severity = symptom.severity || 'unknown';
+      const count = Number(symptom.count || 0);
+      const confidence = Number.isFinite(Number(symptom.maxConfidence)) ? `${Math.round(Number(symptom.maxConfidence) * 100)}%` : 'unknown';
+      return `<div><span style="color:${diagnosticSeverityColor(severity)};">${escapeHTML(severity)}</span> &middot; ${escapeHTML(symptom.symptom.replaceAll('_', ' '))} &middot; ${escapeHTML(String(count))} exchange${count === 1 ? '' : 's'} &middot; ${escapeHTML(confidence)}</div>`;
+    }).join('');
+    healthEl.innerHTML = `
+      <div>Recent exchanges: ${escapeHTML(String(result.exchangeCount || 0))} &middot; events: ${escapeHTML(String(result.eventCount || 0))}</div>
+      ${symptomLines}
+    `;
+  } catch (err) {
+    summaryEl.textContent = 'Error';
+    healthEl.textContent = err?.message || String(err);
+  }
+}
+
+async function exportDiagnosticBundle() {
+  const summaryEl = document.getElementById('diagnosticsSummary');
+  const healthEl = document.getElementById('diagnosticsHealth');
+  if (!summaryEl || !healthEl || !isElectron || !window.cotw.exportDiagnosticBundle) return;
+  summaryEl.textContent = 'Exporting...';
+  healthEl.textContent = 'Writing sealed diagnostic bundle...';
+  try {
+    const result = await window.cotw.exportDiagnosticBundle({ scope: 'last_response' });
+    if (!result?.ok) {
+      summaryEl.textContent = 'Error';
+      const leakText = result?.leakReport?.leakCount ? ` Redaction validation found ${result.leakReport.leakCount} issue(s).` : '';
+      healthEl.textContent = `${result?.error || 'Diagnostic bundle export failed.'}${leakText}`;
+      return;
+    }
+    const manifest = result.manifest || {};
+    const coverage = manifest.coverage || {};
+    summaryEl.innerHTML = `Bundle &middot; ${escapeHTML(String(coverage.eventCount || 0))} events`;
+    healthEl.innerHTML = `
+      <div>Bundle: ${escapeHTML(result.bundleId || manifest.bundleId || 'unknown')}</div>
+      <div>Exchanges: ${escapeHTML(String((coverage.exchangeIds || []).length))} &middot; receipts: ${escapeHTML(String(coverage.receiptCount || 0))}</div>
+      <div>Merkle: ${escapeHTML(String(manifest.merkleRoot || '').slice(0, 24))}${manifest.merkleRoot ? '...' : ''}</div>
+      <div>Training approval: ${manifest.trainingApproval ? 'true' : 'false'} &middot; adapter promotion: ${manifest.adapterPromotionAuthorized ? 'true' : 'false'}</div>
+    `;
+  } catch (err) {
+    summaryEl.textContent = 'Error';
+    healthEl.textContent = err?.message || String(err);
+  }
+}
+
+function diagnosticSeverityColor(severity) {
+  if (severity === 'high') return '#C45B5B';
+  if (severity === 'medium') return '#D08A5B';
+  if (severity === 'low') return 'var(--accent)';
+  return 'var(--text-muted)';
+}
+
+function formatDiagnosticMs(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 'n/a';
+  if (number < 1000) return `${Math.round(number)} ms`;
+  return `${Math.round(number / 100) / 10}s`;
 }
 
 async function loadContinuityCompactionHealth() {
@@ -4906,6 +5115,9 @@ async function showApp() {
   // Prime read-only runtime load metrics for Settings
   loadRuntimeLoadReport();
 
+  // Prime read-only runtime retention audit for Settings
+  loadRuntimeRetentionReport();
+
   // Load sidebar data
   loadStanding();
 
@@ -5074,6 +5286,20 @@ async function showApp() {
     window.cotw.onStreamDone((data) => {
       flushStreamingTts(data?.content);
       finalizeStreamingMessage(data?.content);
+      window.cotw.recordDiagnosticRendererEvent?.({
+        exchangeId: data?.exchangeId,
+        turnId: data?.turnId,
+        requestId: data?.requestId,
+        eventType: 'stream_finalized',
+        status: 'done'
+      });
+      window.cotw.recordDiagnosticRendererEvent?.({
+        exchangeId: data?.exchangeId,
+        turnId: data?.turnId,
+        requestId: data?.requestId,
+        eventType: 'stop_button_cleared',
+        status: document.getElementById('stopBtn')?.style.display === 'none' ? 'done' : 'unknown'
+      });
     });
 
     window.cotw.onStreamError?.((data) => {

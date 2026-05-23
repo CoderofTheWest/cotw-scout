@@ -44,3 +44,19 @@ test('settings renders read-only runtime load card', () => {
   assert.match(html, /Read-only\. Uses local hook metrics from this app profile\./);
   assert.match(html, /loadRuntimeLoadReport\(\);/);
 });
+
+test('settings renders read-only runtime retention card', () => {
+  assert.match(main, /buildRuntimeRetentionReport/);
+  assert.match(main, /ipcMain\.handle\('openclaw:runtime-retention-report'/);
+  assert.match(main, /openclawHome: openclawProfileDir/);
+  assert.match(main, /pluginsPath/);
+  assert.match(preload, /getRuntimeRetentionReport: \(\) => ipcRenderer\.invoke\('openclaw:runtime-retention-report'\)/);
+  assert.match(html, /Retention Health/);
+  assert.match(html, /id="runtimeRetentionSummary"/);
+  assert.match(html, /id="runtimeRetentionHealth"/);
+  assert.match(html, /function loadRuntimeRetentionReport\(/);
+  assert.match(html, /window\.cotw\.getRuntimeRetentionReport\(\)/);
+  assert.match(html, /Read-only\. This audits lifecycle pressure and research data; it does not rotate, archive, delete, train, or inject context\./);
+  assert.match(html, /loadRuntimeRetentionReport\(\);/);
+  assert.doesNotMatch(main, /ipcMain\.handle\('openclaw:runtime-retention-apply'/);
+});

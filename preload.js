@@ -33,6 +33,12 @@ contextBridge.exposeInMainWorld('cotw', {
   getGatewayStatus: () => ipcRenderer.invoke('openclaw:status'),
   getContinuityCompactionHealth: () => ipcRenderer.invoke('openclaw:continuity-compaction-health'),
   getRuntimeLoadReport: () => ipcRenderer.invoke('openclaw:runtime-load-report'),
+  getRuntimeRetentionReport: () => ipcRenderer.invoke('openclaw:runtime-retention-report'),
+  getExchangeTrace: (input) => ipcRenderer.invoke('diagnostics:get-exchange-trace', input),
+  runDiagnosticsTriage: (input) => ipcRenderer.invoke('diagnostics:run-triage', input),
+  getRecentDiagnosticSymptoms: (input) => ipcRenderer.invoke('diagnostics:get-recent-symptoms', input),
+  exportDiagnosticBundle: (input) => ipcRenderer.invoke('diagnostics:export-bundle', input),
+  recordDiagnosticRendererEvent: (input) => ipcRenderer.invoke('diagnostics:renderer-event', input),
 
   // ---- Hosted Canvas Embeds ----
   getHostedEmbedDocument: (ref) => ipcRenderer.invoke('canvas:get-embed-document', ref),

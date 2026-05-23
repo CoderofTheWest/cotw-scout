@@ -3,6 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const { fullHash, safeText, stableHash } = require('./safe');
+const { VALIDATOR_VERSION, redactText, validateNoLeaks } = require('./redaction-validator');
+const { normalizeBundleSchemas } = require('./schema-migration');
 
 const FILES = {
   windows: 'windows.jsonl',
@@ -15,17 +17,29 @@ const FILES = {
   digests: 'digests.jsonl'
 };
 
-function exportResearchBundle({ dataDir, bundleId = null, experimentId, artifacts = {}, reviewerNotes = '', now = new Date().toISOString() } = {}) {
+function exportResearchBundle({
+  dataDir,
+  bundleId = null,
+  experimentId,
+  artifacts = {},
+  reviewerNotes = '',
+  now = new Date().toISOString(),
+  redactionValidator = validateNoLeaks
+} = {}) {
   if (!dataDir) throw new Error('dataDir is required');
-  const id = safeText(bundleId || `research-bundle-${stableHash(`${experimentId}:${now}`)}`, 160);
+  const id = safeText(redactText(bundleId || `research-bundle-${stableHash(`${experimentId}:${now}`)}`), 160);
   const bundleDir = path.join(dataDir, 'research-bundles', id);
-  fs.mkdirSync(bundleDir, { recursive: true });
 
   const files = {};
+  const redactedArtifacts = {};
   for (const [key, filename] of Object.entries(FILES)) {
     const entries = redactEntries(artifacts[key] || []);
-    const filePath = path.join(bundleDir, filename);
-    writeJsonl(filePath, entries);
+    redactedArtifacts[key] = entries;
+  }
+  const schemaCompatibility = normalizeBundleSchemas(redactedArtifacts);
+  const normalizedArtifacts = schemaCompatibility.artifacts;
+  for (const [key, filename] of Object.entries(FILES)) {
+    const entries = normalizedArtifacts[key] || [];
     files[key] = {
       file: filename,
       count: entries.length,
@@ -33,21 +47,62 @@ function exportResearchBundle({ dataDir, bundleId = null, experimentId, artifact
     };
   }
 
+  const redactionValidation = redactionValidator({
+    artifacts: normalizedArtifacts,
+    reviewerNotes: safeText(redactText(reviewerNotes), 1000)
+  });
+  if (!redactionValidation?.ok) {
+    const error = new Error('research bundle redaction validation failed');
+    error.leakReport = {
+      validatorVersion: redactionValidation?.validatorVersion || VALIDATOR_VERSION,
+      checkedPatterns: redactionValidation?.checkedPatterns || [],
+      leakCounts: redactionValidation?.leakCounts || {},
+      leakCount: redactionValidation?.leakCount || 0
+    };
+    throw error;
+  }
+
   const manifest = {
     bundleId: id,
-    experimentId: safeText(experimentId || '', 120),
+    experimentId: safeText(redactText(experimentId || ''), 120),
     schemaVersion: 1,
     generator: 'openclaw-plugin-harness-refiner',
     generatorVersion: '0.1.0',
     redactionPolicy: 'default-local-research-redaction',
+    redactionValidatorVersion: redactionValidation.validatorVersion || VALIDATOR_VERSION,
+    redactionPatternsChecked: redactionValidation.checkedPatterns || [],
+    redactionValidation: {
+      ok: true,
+      leakCount: 0,
+      checkedPatterns: redactionValidation.checkedPatterns || []
+    },
+    receiptSchemaCompatibility: schemaCompatibility.report,
     excludedFields: ['rawLatent', 'attachments.rawContent', 'secrets', 'unredactedPrivateText'],
-    sourceDigestIds: (artifacts.digests || []).map((digest) => digest.id),
+    sourceDigestIds: (artifacts.digests || []).map((digest) => safeText(redactText(digest.id || ''), 160)),
     files,
-    reviewerNotes: safeText(reviewerNotes, 1000),
+    reviewerNotes: safeText(redactText(reviewerNotes), 1000),
     trainingApproval: false,
+    adapterPromotionAuthorized: false,
     createdAt: now
   };
   manifest.manifestHash = fullHash({ ...manifest, manifestHash: undefined });
+
+  const finalValidation = redactionValidator({ artifacts: normalizedArtifacts, manifest });
+  if (!finalValidation?.ok) {
+    const error = new Error('research bundle manifest redaction validation failed');
+    error.leakReport = {
+      validatorVersion: finalValidation?.validatorVersion || VALIDATOR_VERSION,
+      checkedPatterns: finalValidation?.checkedPatterns || [],
+      leakCounts: finalValidation?.leakCounts || {},
+      leakCount: finalValidation?.leakCount || 0
+    };
+    throw error;
+  }
+
+  fs.mkdirSync(bundleDir, { recursive: true });
+  for (const [key, filename] of Object.entries(FILES)) {
+    writeJsonl(path.join(bundleDir, filename), normalizedArtifacts[key] || []);
+  }
   fs.writeFileSync(path.join(bundleDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
   return { bundleId: id, bundleDir, manifest };
 }
@@ -75,8 +130,12 @@ function redactObject(value, key = '', depth = 0) {
     }
     return out;
   }
-  if (key.toLowerCase().includes('content') || key.toLowerCase().includes('summary') || key.toLowerCase().includes('note')) {
-    return safeText(value, 1000);
+  if (typeof value === 'string') {
+    const redacted = redactText(value);
+    if (key.toLowerCase().includes('content') || key.toLowerCase().includes('summary') || key.toLowerCase().includes('note')) {
+      return safeText(redacted, 1000);
+    }
+    return redacted;
   }
   return value;
 }

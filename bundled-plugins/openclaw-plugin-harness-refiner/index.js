@@ -9,7 +9,10 @@ const { exportResearchBundle } = require('./lib/research-bundle-export');
 const { appendResearchArtifact, createResearchLedger, readResearchArtifacts } = require('./lib/research-ledger');
 const { buildTeacherRelabelReceipt } = require('./lib/relabel-packets');
 const { runScenarioReplay } = require('./lib/scenario-replay');
+const { buildHoldoutManifest } = require('./lib/holdout-split');
+const { buildShardManifest, writeSealedShardManifest } = require('./lib/shard-integrity');
 const { readJsonl, resolveBaseDataDir, writeAnalysisArtifacts, writeJsonl } = require('./lib/storage');
+const { buildTeacherRepairQualityReceipt } = require('./lib/teacher-repair-quality');
 
 let evolutionLedger = null;
 try {
@@ -66,6 +69,7 @@ module.exports = {
         detectors: { type: 'object' },
         cognitive: { type: 'object' },
         training: { type: 'object' },
+        teacher: { type: 'object' },
         nightshift: { type: 'object' },
         research: { type: 'object' },
         storage: { type: 'object' }
@@ -186,25 +190,49 @@ module.exports = {
       }
 
       const now = new Date().toISOString();
+      const sourceWindow = resolveWindowForCandidate(candidatePacket);
+      const qualityGate = sourceWindow
+        ? buildTeacherRepairQualityReceipt({
+            window: sourceWindow,
+            candidatePacket,
+            teacherRepair,
+            scorerVersion: config.training?.scorerVersion || candidatePacket.scorerVersion || 'harness-refiner-prm-heuristic-v1',
+            now
+          })
+        : {
+            accepted: false,
+            status: 'rejected',
+            exclusionReason: 'source_window_not_found',
+            originalAggregate: candidatePacket.aggregate ?? null,
+            teacherAggregate: null,
+            perAxisDelta: {},
+            repairLengthDelta: null
+          };
       const receipt = {
         ...buildTeacherRelabelReceipt({
           candidatePacket,
           teacherRepair,
           teacherModel: params.teacherModel || 'teacher-model-unset',
           includeInShard: params.includeInShard === true,
+          qualityGate,
           now
         }),
         experimentId: params.experimentId || lastAnalysis?.experimentId || `${config.research?.defaultExperimentPrefix || 'harness-refiner'}-${now.slice(0, 10)}`
       };
 
       const relabelPath = path.join(baseDataDir, 'analysis', 'teacher-relabels.jsonl');
+      const qualityPath = path.join(baseDataDir, 'analysis', 'teacher-repair-quality.jsonl');
+      writeJsonl(qualityPath, [qualityGate]);
       writeJsonl(relabelPath, [receipt]);
       const researchLedger = createResearchLedger({ dataDir: baseDataDir, experimentId: receipt.experimentId, now });
+      appendResearchArtifact(researchLedger, qualityGate);
       appendResearchArtifact(researchLedger, receipt);
       return {
         ok: true,
         receipt,
+        qualityGate,
         relabelPath,
+        qualityPath,
         trainingLaunchAuthorized: false,
         adapterPromotionAuthorized: false
       };
@@ -216,6 +244,67 @@ module.exports = {
       if (!candidateId) return null;
       const candidates = readJsonl(path.join(baseDataDir, 'analysis', 'relabel-candidates.jsonl'));
       return candidates.find((candidate) => candidate.id === candidateId || candidate.packetId === candidateId) || null;
+    }
+
+    function resolveWindowForCandidate(candidatePacket = {}) {
+      if (candidatePacket.window && typeof candidatePacket.window === 'object') return candidatePacket.window;
+      const windows = readJsonl(path.join(baseDataDir, 'analysis', 'windows.jsonl'));
+      return windows.find((window) => window.id === candidatePacket.windowId) || null;
+    }
+
+    function sealShard(params = {}) {
+      const now = new Date().toISOString();
+      const windows = readJsonl(path.join(baseDataDir, 'analysis', 'windows.jsonl'));
+      const scoreReceipts = readJsonl(path.join(baseDataDir, 'analysis', 'scores.jsonl'));
+      const candidatePackets = readJsonl(path.join(baseDataDir, 'analysis', 'relabel-candidates.jsonl'));
+      const relabelReceipts = readJsonl(path.join(baseDataDir, 'analysis', 'teacher-relabels.jsonl'));
+      const holdoutManifest = params.holdoutManifest || buildHoldoutManifest({
+        windows,
+        candidatePackets,
+        relabelReceipts,
+        seed: params.holdoutSeed || 'cotw-holdout-v1',
+        ratios: params.holdoutRatios,
+        now
+      });
+      const manifest = buildShardManifest({
+        shardId: params.shardId,
+        relabelReceipts,
+        candidatePackets,
+        windows,
+        scoreReceipts,
+        holdoutManifest,
+        qualityGate: {
+          ...(config.training?.shardQualityGate || {}),
+          ...(params.qualityGate || {})
+        },
+        now
+      });
+      if (!manifest.qualityGate.passed) {
+        return {
+          ok: false,
+          readOnly: true,
+          reason: 'shard_quality_gate_failed',
+          manifest,
+          trainingApproval: false,
+          adapterPromotionAuthorized: false
+        };
+      }
+      const shardDir = path.join(baseDataDir, 'shards');
+      const shardFile = path.join(shardDir, `${safeShardFileName(manifest.shardId)}.manifest.json`);
+      writeSealedShardManifest(shardFile, manifest);
+      const researchLedger = createResearchLedger({
+        dataDir: baseDataDir,
+        experimentId: params.experimentId || lastAnalysis?.experimentId || `${config.research?.defaultExperimentPrefix || 'harness-refiner'}-${now.slice(0, 10)}`,
+        now
+      });
+      appendResearchArtifact(researchLedger, manifest);
+      return {
+        ok: true,
+        manifest,
+        manifestPath: shardFile,
+        trainingApproval: false,
+        adapterPromotionAuthorized: false
+      };
     }
 
     api.on('after_tool_call', (event, ctx) => {
@@ -237,6 +326,10 @@ module.exports = {
 
     api.on('agent_end', async (event, ctx) => {
       const agentId = ctx?.agentId || 'main';
+      const metadata = event.metadata || {};
+      const exchangeId = metadata.exchangeId || metadata.exchange_id || '';
+      const turnId = metadata.turnId || metadata.turn_id || '';
+      const runId = metadata.runId || metadata.run_id || '';
       const cognitiveSnapshot = buildCognitiveSnapshot({
         api,
         agentId,
@@ -249,14 +342,19 @@ module.exports = {
         messages: event.messages || [],
         toolCalls: activeToolCalls.get(agentId) || [],
         cognitiveSnapshot,
-        mode: event.metadata?.mode || (event.metadata?.codeMode ? 'code' : ''),
-        sessionId: event.metadata?.sessionId || '',
-        threadId: event.metadata?.threadId || '',
-        sourceHandles: event.metadata?.sourceHandles || event.metadata?.receiptHandles || [],
+        mode: metadata.mode || (metadata.codeMode ? 'code' : ''),
+        sessionId: metadata.sessionId || metadata.session_id || '',
+        threadId: metadata.threadId || metadata.thread_id || '',
+        exchangeIds: exchangeId ? [exchangeId] : [],
+        traceRefs: metadata.traceRefs || metadata.trace_refs || [],
+        sourceHandles: metadata.sourceHandles || metadata.receiptHandles || metadata.source_handles || metadata.receipt_handles || [],
         metadata: {
           scaffoldHash: global.__ocCodeEvolution?.getScaffoldVersion?.() || '',
-          modelOrAdapterHash: event.metadata?.model || event.metadata?.modelOrAdapterHash || '',
-          codeMode: event.metadata?.codeMode === true
+          modelOrAdapterHash: metadata.model || metadata.modelOrAdapterHash || metadata.model_or_adapter_hash || '',
+          codeMode: metadata.codeMode === true,
+          exchangeId,
+          turnId,
+          runId
         },
         createdAt: new Date().toISOString()
       });
@@ -333,6 +431,10 @@ module.exports = {
         return createTeacherRelabel(normalizeGatewayParams(input));
       });
 
+      api.registerGatewayMethod('harness-refiner.sealShard', async (input) => {
+        return sealShard(normalizeGatewayParams(input));
+      });
+
       api.registerGatewayMethod('harness-refiner.runScenarioReplay', async () => {
         return {
           readOnly: true,
@@ -381,4 +483,8 @@ function summarizeAnalysis(result = {}) {
     digestCount: (result.digests || []).length,
     skippedWindowCount: (result.skippedWindows || []).length
   };
+}
+
+function safeShardFileName(value) {
+  return String(value || 'shard').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(0, 180);
 }

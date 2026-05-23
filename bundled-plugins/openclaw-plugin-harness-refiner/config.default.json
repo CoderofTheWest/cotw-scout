@@ -22,7 +22,23 @@
   },
   "training": {
     "scorerVersion": "harness-refiner-prm-heuristic-v1",
-    "lowScoreThreshold": 0.55
+    "lowScoreThreshold": 0.55,
+    "shardQualityGate": {
+      "minIncludedPairs": 50,
+      "maxSingleAxisShare": 0.6,
+      "maxSingleSourceModeShare": 0.7,
+      "maxSingleTeacherModelShare": 0.8
+    }
+  },
+  "teacher": {
+    "provider": "manual",
+    "model": "teacher-model-unset",
+    "promptTemplate": "lib/teacher-repair-prompt.js",
+    "maxTokens": 1200,
+    "temperature": 0,
+    "timeoutMs": 30000,
+    "maxCandidates": 1,
+    "minimumAgreement": 0.7
   },
   "nightshift": {
     "priority": 35,

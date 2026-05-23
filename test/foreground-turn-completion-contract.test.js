@@ -5,7 +5,10 @@ const test = require('node:test');
 
 const repoRoot = path.resolve(__dirname, '..');
 const mainSource = fs.readFileSync(path.join(repoRoot, 'main.js'), 'utf8');
-const guiSource = fs.readFileSync(path.join(repoRoot, 'cotw-scout-gui.html'), 'utf8');
+const guiPath = fs.existsSync(path.join(repoRoot, 'cotw-trail-guide-gui.html'))
+  ? path.join(repoRoot, 'cotw-trail-guide-gui.html')
+  : path.join(repoRoot, 'cotw-scout-gui.html');
+const guiSource = fs.readFileSync(guiPath, 'utf8');
 const preloadSource = fs.readFileSync(path.join(repoRoot, 'preload.js'), 'utf8');
 
 test('runtime creates an honest visible fallback when foreground tool work has no post-tool handoff', () => {
@@ -59,7 +62,7 @@ test('runtime sends and records completion obligation metadata for toolful turns
   assert.match(mainSource, /reasonCodes: sawToolCall \? \['foreground_tool_use'\] : \[\]/);
   assert.match(mainSource, /resolution: sawToolCall\s*\? \(completionObligationFallback \? 'blocked_response' : 'visible_final_response'\)/);
   assert.match(mainSource, /completionObligation,/);
-  assert.match(mainSource, /chat:stream-done', \{ content: fullContent, requestId, reconciled: streamReconciled, completionObligation \}/);
+  assert.match(mainSource, /chat:stream-done', \{ content: fullContent, requestId, exchangeId: exchangeContext\.exchangeId, turnId: exchangeContext\.turnId, reconciled: streamReconciled, completionObligation \}/);
   assert.match(mainSource, /completionObligation: obligation/);
 });
 

@@ -30,6 +30,7 @@ test('Harness Refiner plugin registers expected read-only gateway methods', () =
     'harness-refiner.getResearchDigest',
     'harness-refiner.exportResearchBundle',
     'harness-refiner.createTeacherRelabel',
+    'harness-refiner.sealShard',
     'harness-refiner.runScenarioReplay'
   ]) {
     assert.match(pluginSource, new RegExp(method.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));

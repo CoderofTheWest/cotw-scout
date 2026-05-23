@@ -68,6 +68,7 @@ class FakeAttachmentDb {
             session_id: turn.sessionId,
             project_id: turn.projectId,
             turn_id: turn.turnId,
+            exchange_id: turn.exchangeId,
             created_at: turn.createdAt,
           });
         }
@@ -118,6 +119,7 @@ test('attachment receipts verify source path hash and link to a thread turn', ()
     sessionId: 'session_a',
     projectId: 'project_a',
     turnId: 'turn_a',
+    exchangeId: 'ex_a',
     now: '2026-05-22T12:00:00.000Z',
   });
 
@@ -133,6 +135,7 @@ test('attachment receipts verify source path hash and link to a thread turn', ()
   const turn = db.prepare('SELECT * FROM attachment_receipt_turns WHERE receipt_id = ?').get(receipts[0].id);
   assert.equal(turn.thread_id, 'thread_a');
   assert.equal(turn.session_id, 'session_a');
+  assert.equal(turn.exchange_id, 'ex_a');
 }));
 
 test('recent receipt context carries prior handles and excludes current turn ids', () => withTempDb(({ db, dir }) => {

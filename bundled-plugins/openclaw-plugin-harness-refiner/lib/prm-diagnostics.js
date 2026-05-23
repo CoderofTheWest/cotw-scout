@@ -1,6 +1,7 @@
 'use strict';
 
 const { clamp, safeText, stableHash } = require('./safe');
+const { SCHEMA_VERSIONS } = require('./schema-versions');
 
 const SCORE_AXES = [
   'format_compliance',
@@ -31,8 +32,11 @@ function scoreWindow(window = {}, options = {}) {
   const aggregate = SCORE_AXES.reduce((sum, axis) => sum + scores[axis], 0) / SCORE_AXES.length;
   return {
     id: `process-score-${stableHash(`${window.id}:${JSON.stringify(scores)}`)}`,
+    schemaVersion: SCHEMA_VERSIONS.SCORE_RECEIPT,
+    type: 'process_score_receipt',
     windowId: window.id,
     scorerVersion: options.scorerVersion || 'harness-refiner-prm-heuristic-v1',
+    scorerKind: options.scorerKind || 'heuristic',
     scores: roundScores(scores),
     aggregate: Number(aggregate.toFixed(3)),
     lowScoreAxes: SCORE_AXES.filter((axis) => scores[axis] < 0.5),

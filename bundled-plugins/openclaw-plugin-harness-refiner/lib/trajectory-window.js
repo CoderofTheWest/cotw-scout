@@ -27,6 +27,13 @@ function normalizeTrajectoryWindow(input = {}, options = {}) {
     ...ensureArray(input.receipts),
     ...ensureArray(input.receiptHandles)
   ]);
+  const exchangeIds = uniqueStrings([
+    ...ensureArray(input.exchangeIds),
+    input.exchangeId,
+    input.metadata?.exchangeId,
+    input.metadata?.exchange_id
+  ]);
+  const traceRefs = normalizeHandles(input.traceRefs || input.metadata?.traceRefs || input.metadata?.trace_refs || []);
   const triggerEvent = safeText(input.triggerEvent || inferTriggerEvent({ messages, toolCalls, cognitiveSnapshot }), 80);
   const scope = safeText(input.scope || input.windowScope || 'current_task', 80);
   const id = safeText(input.id || `window-${stableHash({
@@ -34,7 +41,9 @@ function normalizeTrajectoryWindow(input = {}, options = {}) {
     triggerEvent,
     messages: messages.map((message) => `${message.role}:${message.content}`),
     toolCalls: toolCalls.map((call) => `${call.toolName}:${call.success}:${call.paramsHash}`),
-    sourceHandles
+    sourceHandles,
+    exchangeIds,
+    traceRefs
   })}`, 140);
 
   return {
@@ -46,6 +55,8 @@ function normalizeTrajectoryWindow(input = {}, options = {}) {
     mode: safeText(input.mode || input.activeMode || input.metadata?.mode || '', 80),
     sessionId: safeText(input.sessionId || input.metadata?.sessionId || '', 120),
     threadId: safeText(input.threadId || input.metadata?.threadId || '', 120),
+    exchangeIds,
+    traceRefs,
     objective: safeText(input.objective || input.task || '', 240),
     messages,
     toolCalls,

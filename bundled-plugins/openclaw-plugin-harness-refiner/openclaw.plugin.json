@@ -15,6 +15,7 @@
       "detectors": { "type": "object" },
       "cognitive": { "type": "object" },
       "training": { "type": "object" },
+      "teacher": { "type": "object" },
       "nightshift": { "type": "object" },
       "research": { "type": "object" },
       "storage": { "type": "object" }

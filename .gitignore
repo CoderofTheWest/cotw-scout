@@ -21,6 +21,7 @@ scripts/*
 !scripts/notarize.js
 !scripts/build-speech-helper.sh
 !scripts/continuity-compaction-health.js
+!scripts/runtime-retention-audit.js
 !scripts/apply-openclaw-local-patches.js
 !scripts/check-gateway-service-abi.js
 !scripts/gateway-service-handoff-latch.js
