@@ -271,6 +271,20 @@ test('loadEvolution renders harness refiner proposals with scaffold promotion an
   assert.match(context.detail.body, /Raw latent included/);
 });
 
+test('loadEvolution keeps Harness Refiner visible before research digests exist', async () => {
+  const { context, elements } = createHarness();
+  context.isElectron = true;
+  context.window.cotw = {
+    getEvolution: async () => ({ live: true, entries: [] }),
+    getHarnessResearch: async () => ({ readOnly: true, digests: [] })
+  };
+
+  await context.api.loadEvolution();
+  const htmlOut = elements.get('evolveTab').innerHTML;
+  assert.match(htmlOut, /Harness Refiner/);
+  assert.match(htmlOut, /No harness research digests yet/);
+});
+
 test('applied scaffold promotions expose rollback scaffold control', async () => {
   const { context } = createHarness();
   const entry = {

@@ -7364,7 +7364,12 @@ function renderHarnessResearchPanel(result) {
     return `<div class="sidebar-empty">Harness research read failed: ${escapeHtml(result.error)}</div>`;
   }
   const digests = Array.isArray(result.digests) ? result.digests : [];
-  if (!digests.length) return '';
+  if (!digests.length) {
+    return `
+      <div class="evolution-section-title">Harness Refiner</div>
+      <div class="sidebar-empty">No harness research digests yet. New digests will appear here after Harness Refiner records trajectory evidence.</div>
+    `;
+  }
   const cards = digests.slice(0, 3).map((digest, idx) => renderHarnessResearchDigestCard(digest, idx)).join('');
   const more = digests.length > 3 ? `<div class="sidebar-empty" style="margin-top:4px;">+${escapeHtml(digests.length - 3)} more research digest${digests.length - 3 === 1 ? '' : 's'}</div>` : '';
   return `
