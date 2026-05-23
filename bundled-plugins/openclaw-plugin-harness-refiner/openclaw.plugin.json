@@ -1,0 +1,23 @@
+{
+  "id": "harness-refiner",
+  "activation": {
+    "onStartup": true
+  },
+  "name": "Harness Refiner",
+  "description": "Read-only continual harness refinement and research-platform diagnostics. Turns trajectory windows into proposal receipts, PRM-style scores, relabel packets, research digests, and redacted bundle exports without mutating protected state or launching training.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "recording": { "type": "object" },
+      "analysis": { "type": "object" },
+      "detectors": { "type": "object" },
+      "cognitive": { "type": "object" },
+      "training": { "type": "object" },
+      "nightshift": { "type": "object" },
+      "research": { "type": "object" },
+      "storage": { "type": "object" }
+    }
+  }
+}

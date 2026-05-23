@@ -43,6 +43,7 @@ contextBridge.exposeInMainWorld('cotw', {
   getContemplation: () => ipcRenderer.invoke('sidebar:contemplation'),
   getJournal: () => ipcRenderer.invoke('sidebar:journal'),
   getEvolution: () => ipcRenderer.invoke('sidebar:evolution'),
+  getHarnessResearch: () => ipcRenderer.invoke('sidebar:harness-research'),
   getSpineLedger: () => ipcRenderer.invoke('sidebar:spine'),
   getProjectRadar: () => ipcRenderer.invoke('sidebar:project-radar'),
   updateEvolutionEvent: (data) => ipcRenderer.invoke('sidebar:evolution-action', data),

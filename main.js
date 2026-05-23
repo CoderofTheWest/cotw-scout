@@ -84,8 +84,10 @@ const { buildContinuityHealthReport } = require('./lib/continuity-compaction-hea
 const { buildRuntimeLoadReport } = require('./lib/runtime-load-report');
 const {
   promoteScaffoldProposal,
+  promoteHarnessRefinerProposal,
   rollbackScaffoldPromotion,
   buildScaffoldPromotionEvent,
+  buildHarnessRefinerPromotionEvent,
   buildScaffoldRollbackEvent
 } = require('./lib/code-evolution-scaffold-promotion');
 const {
@@ -2238,6 +2240,7 @@ function getPluginDirs() {
     'openclaw-plugin-tool-provenance',
     'openclaw-plugin-threads',
     'openclaw-plugin-code-evolution',
+    'openclaw-plugin-harness-refiner',
   ];
 
   for (const name of pluginNames) {
@@ -3066,6 +3069,14 @@ ipcMain.handle('sidebar:evolution', async () => {
   }
 });
 
+ipcMain.handle('sidebar:harness-research', async () => {
+  try {
+    return loadHarnessResearchDigests({ limit: 12 });
+  } catch (err) {
+    return { live: true, readOnly: true, digests: [], error: String(err.message || err) };
+  }
+});
+
 ipcMain.handle('sidebar:spine', async () => {
   try {
     const receiptEntries = listEvolutionEvents(candidateEvolutionLedgerPaths({ workspacePath, pluginsPath }), { limit: 80 });
@@ -3094,6 +3105,77 @@ function filterHandledEvolutionCandidates(candidates = [], receiptEntries = []) 
     if (originalCandidateId) handledCandidateIds.add(originalCandidateId);
   }
   return candidates.filter((candidate) => !handledCandidateIds.has(candidate.id));
+}
+
+function loadHarnessResearchDigests({ limit = 12 } = {}) {
+  const researchPath = path.join(pluginsPath, 'openclaw-plugin-harness-refiner', 'data', 'research', 'research-ledger.jsonl');
+  const digests = readJsonlFile(researchPath)
+    .filter(entry => entry?.type === 'research_digest')
+    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+    .slice(0, Math.max(1, Number(limit) || 12))
+    .map(sanitizeHarnessResearchDigest);
+  return {
+    live: true,
+    readOnly: true,
+    digests,
+    sourcePath: researchPath,
+    error: null
+  };
+}
+
+function readJsonlFile(filePath) {
+  if (!fs.existsSync(filePath)) return [];
+  return fs.readFileSync(filePath, 'utf8')
+    .split(/\n/)
+    .filter(Boolean)
+    .map(line => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
+
+function sanitizeHarnessResearchDigest(digest = {}) {
+  const artifactCounts = digest.artifactCounts && typeof digest.artifactCounts === 'object' ? digest.artifactCounts : {};
+  const signals = digest.signals && typeof digest.signals === 'object' ? digest.signals : {};
+  const decisions = digest.decisions && typeof digest.decisions === 'object' ? digest.decisions : {};
+  return {
+    id: sanitizeEvolutionReason(digest.id || ''),
+    type: 'research_digest',
+    experimentId: sanitizeEvolutionReason(digest.experimentId || ''),
+    clusterId: sanitizeEvolutionReason(digest.clusterId || ''),
+    title: sanitizeEvolutionReason(digest.title || 'Harness research digest'),
+    whyItMatters: sanitizeEvolutionReason(digest.whyItMatters || ''),
+    createdAt: sanitizeEvolutionReason(digest.createdAt || ''),
+    artifactCounts: {
+      windows: Number(artifactCounts.windows || 0),
+      proposals: Number(artifactCounts.proposals || 0),
+      replays: Number(artifactCounts.replays || 0),
+      relabelCandidates: Number(artifactCounts.relabelCandidates || 0),
+      teacherRelabels: Number(artifactCounts.teacherRelabels || 0),
+      healthReceipts: Number(artifactCounts.healthReceipts || 0),
+      skipped: Number(artifactCounts.skipped || 0)
+    },
+    signals: {
+      failureSignatures: Array.isArray(signals.failureSignatures) ? signals.failureSignatures.map(v => sanitizeEvolutionReason(v)).slice(0, 12) : [],
+      cognitiveSummary: signals.cognitiveSummary && typeof signals.cognitiveSummary === 'object'
+        ? {
+            latentBucket: sanitizeEvolutionReason(signals.cognitiveSummary.latentBucket || ''),
+            rawLatentIncluded: signals.cognitiveSummary.rawLatentIncluded === true
+          }
+        : null
+    },
+    decisions: {
+      proposalStatus: sanitizeEvolutionReason(decisions.proposalStatus || ''),
+      trainingDataStatus: sanitizeEvolutionReason(decisions.trainingDataStatus || ''),
+      exclusionReason: sanitizeEvolutionReason(decisions.exclusionReason || '')
+    },
+    nextReviewAction: sanitizeEvolutionReason(digest.nextReviewAction || ''),
+    redactionPolicy: sanitizeEvolutionReason(digest.redactionPolicy || 'default-local-research-redaction')
+  };
 }
 
 ipcMain.handle('sidebar:evolution-action', async (_event, { id, action, note } = {}) => {
@@ -3166,9 +3248,14 @@ async function applyScaffoldEvolutionProposal({ id, note } = {}) {
   if (!ledgerPath || !proposalEntry) return { ok: false, error: 'Scaffold proposal not found.' };
   const gate = createEvolutionActionGateReceipt({ id, action: 'apply_scaffold_proposal', entry: proposalEntry, note });
   if (!gate.allowed) return refuseEvolutionActionFromGate(gate);
-  const result = promoteScaffoldProposal(proposalEntry, { pluginsPath });
+  const isHarnessRefinerProposal = proposalEntry.action === 'harness_refinement_proposal';
+  const result = isHarnessRefinerProposal
+    ? promoteHarnessRefinerProposal(proposalEntry, { pluginsPath })
+    : promoteScaffoldProposal(proposalEntry, { pluginsPath });
   const now = new Date().toISOString();
-  const promotionEvent = buildScaffoldPromotionEvent(proposalEntry, result, { now });
+  const promotionEvent = isHarnessRefinerProposal
+    ? buildHarnessRefinerPromotionEvent(proposalEntry, result, { now })
+    : buildScaffoldPromotionEvent(proposalEntry, result, { now });
   appendEvolutionEvent(ledgerPath, { ...proposalEntry, status: 'applied', updatedAt: now }, { now });
   appendEvolutionEvent(ledgerPath, promotionEvent, { now });
   const entry = listEvolutionEvents(ledgerPath, { limit: 500 }).find((candidate) => candidate.id === promotionEvent.id) || promotionEvent;

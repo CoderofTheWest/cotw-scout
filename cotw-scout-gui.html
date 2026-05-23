@@ -7259,6 +7259,7 @@ async function loadEvolution() {
   let error = null;
   let spineSnapshot = null;
   let health = null;
+  let harnessResearch = null;
   if (isElectron && window.cotw?.getEvolution) {
     try {
       const result = await window.cotw.getEvolution();
@@ -7276,6 +7277,13 @@ async function loadEvolution() {
         spineSnapshot = { readOnly: true, error: err?.message || String(err) };
       }
     }
+    if (window.cotw?.getHarnessResearch) {
+      try {
+        harnessResearch = await window.cotw.getHarnessResearch();
+      } catch (err) {
+        harnessResearch = { readOnly: true, error: err?.message || String(err), digests: [] };
+      }
+    }
   } else {
     entries = getEvolutionPreviewEntries();
   }
@@ -7284,7 +7292,8 @@ async function loadEvolution() {
   window.__evolutionData = entries;
   window.__evolutionAllEntries = entries;
   window.__spineSnapshot = spineSnapshot;
-  window.__evolutionRenderState = { preview, error, spineSnapshot, health };
+  window.__harnessResearch = harnessResearch;
+  window.__evolutionRenderState = { preview, error, spineSnapshot, health, harnessResearch };
   renderEvolutionSurface();
 }
 
@@ -7297,14 +7306,17 @@ function renderEvolutionSurface() {
   const error = state.error || null;
   const spineSnapshot = state.spineSnapshot || window.__spineSnapshot;
   const health = state.health || null;
+  const harnessResearch = state.harnessResearch || window.__harnessResearch;
   window.__evolutionData = entries;
   window.__spineSnapshot = spineSnapshot;
+  window.__harnessResearch = harnessResearch;
 
   if (!entries.length) {
     const errorLine = error ? `<div class="sidebar-empty">Ledger read failed: ${escapeHtml(error)}</div>` : '';
     const spineBlock = renderSpineSnapshot(spineSnapshot);
     const healthBlock = renderEvolutionHealth(health);
-    container.innerHTML = `${healthBlock}${spineBlock}${errorLine}<div class="sidebar-empty">Autonomous evolution receipts will appear here once low-risk changes make it through the seatbelt.</div>`;
+    const researchBlock = renderHarnessResearchPanel(harnessResearch);
+    container.innerHTML = `${healthBlock}${researchBlock}${spineBlock}${errorLine}<div class="sidebar-empty">Autonomous evolution receipts will appear here once low-risk changes make it through the seatbelt.</div>`;
     return;
   }
 
@@ -7325,6 +7337,7 @@ function renderEvolutionSurface() {
     : `<div class="sidebar-empty">Live autonomy lane · ${receiptCount} receipt${receiptCount === 1 ? '' : 's'} · ${candidateCount} candidate${candidateCount === 1 ? '' : 's'}${filterLine}</div>`;
   const healthBlock = renderEvolutionHealth(health);
   const spineBlock = renderSpineSnapshot(spineSnapshot);
+  const researchBlock = renderHarnessResearchPanel(harnessResearch);
   const filtersBlock = renderEvolutionFilters(entries, filteredItems.length);
   const displayGroups = [];
   window.__evolutionDisplayGroups = displayGroups;
@@ -7342,7 +7355,76 @@ function renderEvolutionSurface() {
     `;
   }).join('');
   const emptyFiltered = filteredItems.length ? '' : '<div class="sidebar-empty">No evolution receipts match the current filters.</div>';
-  container.innerHTML = healthBlock + spineBlock + filtersBlock + cardsHtml + emptyFiltered + footer;
+  container.innerHTML = healthBlock + researchBlock + spineBlock + filtersBlock + cardsHtml + emptyFiltered + footer;
+}
+
+function renderHarnessResearchPanel(result) {
+  if (!result) return '';
+  if (result.error) {
+    return `<div class="sidebar-empty">Harness research read failed: ${escapeHtml(result.error)}</div>`;
+  }
+  const digests = Array.isArray(result.digests) ? result.digests : [];
+  if (!digests.length) return '';
+  const cards = digests.slice(0, 3).map((digest, idx) => renderHarnessResearchDigestCard(digest, idx)).join('');
+  const more = digests.length > 3 ? `<div class="sidebar-empty" style="margin-top:4px;">+${escapeHtml(digests.length - 3)} more research digest${digests.length - 3 === 1 ? '' : 's'}</div>` : '';
+  return `
+    <div class="evolution-section-title">Harness research digests</div>
+    ${cards}
+    ${more}
+  `;
+}
+
+function renderHarnessResearchDigestCard(digest, idx) {
+  const counts = digest.artifactCounts || {};
+  const signatures = digest.signals?.failureSignatures || [];
+  const cognitive = digest.signals?.cognitiveSummary || {};
+  const countLine = [
+    `${counts.windows || 0} window${counts.windows === 1 ? '' : 's'}`,
+    `${counts.proposals || 0} proposal${counts.proposals === 1 ? '' : 's'}`,
+    `${counts.relabelCandidates || 0} relabel candidate${counts.relabelCandidates === 1 ? '' : 's'}`
+  ].join(' · ');
+  return `
+    <div class="evolution-card" onclick="showHarnessResearchDetail(${idx})">
+      <div class="evolution-card-header">
+        <div class="evolution-card-title">${escapeHtml(digest.title || 'Harness research digest')}</div>
+        <div class="evolution-card-class">Research</div>
+      </div>
+      <div class="evolution-card-summary">${escapeHtml(digest.whyItMatters || 'Runtime behavior grouped for review.')}</div>
+      <div class="evolution-card-meta">
+        <span class="evolution-pill">${escapeHtml(countLine)}</span>
+        ${signatures.length ? `<span class="evolution-pill">${escapeHtml(signatures.join(', '))}</span>` : ''}
+        ${cognitive.latentBucket ? `<span class="evolution-pill">${escapeHtml(cognitive.latentBucket)}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function showHarnessResearchDetail(idx) {
+  const digest = window.__harnessResearch?.digests?.[idx];
+  if (!digest) return;
+  const counts = digest.artifactCounts || {};
+  const signals = digest.signals || {};
+  const decisions = digest.decisions || {};
+  const cognitive = signals.cognitiveSummary || {};
+  const html = `
+    <p style="font-family:var(--font-serif);color:var(--text);font-size:14px;line-height:1.5;">${escapeHtml(digest.whyItMatters || '')}</p>
+    <div class="evolution-detail-grid">
+      ${renderEvolutionDetailRow('Experiment', digest.experimentId)}
+      ${renderEvolutionDetailRow('Cluster', digest.clusterId)}
+      ${renderEvolutionDetailRow('Windows', counts.windows)}
+      ${renderEvolutionDetailRow('Proposals', counts.proposals)}
+      ${renderEvolutionDetailRow('Relabel candidates', counts.relabelCandidates)}
+      ${renderEvolutionDetailRow('Failure signatures', Array.isArray(signals.failureSignatures) ? signals.failureSignatures.join(', ') : '')}
+      ${renderEvolutionDetailRow('Cognitive bucket', cognitive.latentBucket || 'Not recorded')}
+      ${renderEvolutionDetailRow('Raw latent included', cognitive.rawLatentIncluded ? 'yes' : 'no')}
+      ${renderEvolutionDetailRow('Proposal status', decisions.proposalStatus)}
+      ${renderEvolutionDetailRow('Training data status', decisions.trainingDataStatus)}
+      ${renderEvolutionDetailRow('Next review action', digest.nextReviewAction)}
+      ${renderEvolutionDetailRow('Redaction policy', digest.redactionPolicy)}
+    </div>
+    <p class="evolution-card-summary">Research digests are read-only. They do not approve training data, mutate scaffold state, or grant apply authority.</p>
+  `;
+  openSidebarDetail(digest.title || 'Harness research digest', html);
 }
 
 function renderEvolutionHealth(health) {
@@ -7864,6 +7946,24 @@ function renderEvolutionCard(entry, idx) {
 }
 
 function renderEvolutionCardSummary(entry) {
+  if (entry?.action === 'harness_refinement_proposal') {
+    const metadata = entry.metadata || {};
+    const evidence = metadata.evidence || {};
+    const evidenceBits = [];
+    if (evidence.failureCount) evidenceBits.push(`${evidence.failureCount} failures`);
+    if (evidence.repeatCount) evidenceBits.push(`${evidence.repeatCount} repeats`);
+    if (evidence.userCorrections) evidenceBits.push(`${evidence.userCorrections} corrections`);
+    if (metadata.confidence) evidenceBits.push(`confidence ${metadata.confidence}`);
+    const evidenceLine = evidenceBits.length ? `<div><strong>Evidence:</strong> ${escapeHtml(evidenceBits.join(' · '))}</div>` : '';
+    return `
+      <div class="evolution-card-summary">
+        <div><strong>Proposal:</strong> ${escapeHtml(metadata.proposedChange || entry.summary)}</div>
+        <div><strong>Lane:</strong> ${escapeHtml(metadata.lane || 'workflow_patch')}</div>
+        <div><strong>Target:</strong> ${escapeHtml(metadata.targetSurface || entry.sourceCategory || 'harness surface')}</div>
+        ${evidenceLine}
+      </div>
+    `;
+  }
   if (entry?.action === 'scaffold_proposal') {
     const metadata = entry.metadata || {};
     const proposal = metadata.proposedChange || entry.summary;
@@ -7941,11 +8041,13 @@ function showEvolutionDetail(idx) {
     : renderEvolutionActionButtons(entry, idx);
   const approvalBlock = isEvolutionApprovalCard(entry) ? renderEvolutionApprovalDetail(entry) : '';
   const scaffoldBlock = renderScaffoldProposalDetail(entry);
+  const harnessBlock = renderHarnessRefinerProposalDetail(entry);
   const html = `
     ${renderEvolutionOutcomeBanner(entry)}
     <p style="font-family:var(--font-serif);color:var(--text);font-size:14px;line-height:1.5;">${escapeHtml(entry.summary)}</p>
     ${approvalBlock}
     ${scaffoldBlock}
+    ${harnessBlock}
     <div class="evolution-detail-grid">
       ${renderEvolutionDetailRow('Class', classLabel)}
       ${renderEvolutionDetailRow('Status', entry.status)}
@@ -7954,6 +8056,9 @@ function showEvolutionDetail(idx) {
       ${entry.metadata?.policyDecision ? renderEvolutionDetailRow('Policy decision', entry.metadata.policyDecision) : ''}
       ${entry.metadata?.lane ? renderEvolutionDetailRow('Review lane', entry.metadata.lane) : ''}
       ${entry.metadata?.proposalKind ? renderEvolutionDetailRow('Proposal kind', entry.metadata.proposalKind) : ''}
+      ${entry.metadata?.signature ? renderEvolutionDetailRow('Failure signature', entry.metadata.signature) : ''}
+      ${entry.metadata?.lane ? renderEvolutionDetailRow('Harness lane', entry.metadata.lane) : ''}
+      ${entry.metadata?.targetSurface ? renderEvolutionDetailRow('Target surface', entry.metadata.targetSurface) : ''}
       ${entry.metadata?.changeType ? renderEvolutionDetailRow('Scaffold change', entry.metadata.changeType) : ''}
       ${entry.metadata?.target ? renderEvolutionDetailRow('Scaffold target', entry.metadata.target) : ''}
       ${entry.metadata?.confidence ? renderEvolutionDetailRow('Confidence', entry.metadata.confidence) : ''}
@@ -7984,6 +8089,28 @@ function showEvolutionDetail(idx) {
     </div>
   `;
   openSidebarDetail(entry.title, html);
+}
+
+function renderHarnessRefinerProposalDetail(entry) {
+  if (entry?.action !== 'harness_refinement_proposal') return '';
+  const metadata = entry.metadata || {};
+  const cognitive = metadata.cognitiveSnapshot || {};
+  const evidence = metadata.evidence || {};
+  const evidenceRows = Object.entries(evidence).slice(0, 6)
+    .map(([key, value]) => `<div>${escapeHtml(key)}: ${escapeHtml(typeof value === 'string' ? value : JSON.stringify(value))}</div>`)
+    .join('');
+  return `
+    <div class="evolution-approval-grid">
+      <div class="evolution-approval-row"><strong>High-level proposal:</strong> ${escapeHtml(metadata.proposedChange || entry.summary)}</div>
+      <div class="evolution-approval-row"><strong>Lane:</strong> ${escapeHtml(metadata.lane || 'workflow_patch')}</div>
+      <div class="evolution-approval-row"><strong>Target surface:</strong> ${escapeHtml(metadata.targetSurface || entry.sourceCategory || 'harness surface')}</div>
+      <div class="evolution-approval-row"><strong>Apply path:</strong> ${escapeHtml(metadata.applyPath || 'review_only')}</div>
+      <div class="evolution-approval-row"><strong>Cognitive signal:</strong> ${escapeHtml(cognitive.latentBucket || 'not recorded')} · raw latent ${cognitive.rawLatentIncluded ? 'included' : 'redacted'}</div>
+      <div class="evolution-approval-row"><strong>Test plan:</strong> ${escapeHtml(metadata.testPlan || entry.verification)}</div>
+      <div class="evolution-approval-row"><strong>Rollback:</strong> ${escapeHtml(metadata.rollbackPlan || entry.rollback)}</div>
+      ${evidenceRows ? `<div class="evolution-approval-row"><strong>Evidence:</strong>${evidenceRows}</div>` : ''}
+    </div>
+  `;
 }
 
 function renderScaffoldProposalDetail(entry) {
@@ -8114,14 +8241,28 @@ function evolutionCanApplyCandidate(entry) {
 }
 
 function evolutionCanPromoteScaffoldProposal(entry) {
-  return entry?.action === 'scaffold_proposal'
-    && entry?.status === 'preview'
-    && entry?.risk === 'low'
-    && ['tool_hint', 'workflow_sequence', 'prompt_rule'].includes(entry?.metadata?.changeType)
-    && entry?.metadata?.mutationAttempted !== true
-    && entry?.metadata?.mutationAttempted !== 'true'
-    && entry?.metadata?.promptInjectionChanged !== true
-    && entry?.metadata?.promptInjectionChanged !== 'true';
+  if (!entry || entry.status !== 'preview' || entry.risk !== 'low') return false;
+  const mutationClean = entry.metadata?.mutationAttempted !== true
+    && entry.metadata?.mutationAttempted !== 'true'
+    && entry.metadata?.promptInjectionChanged !== true
+    && entry.metadata?.promptInjectionChanged !== 'true';
+  if (!mutationClean) return false;
+  if (entry.action === 'scaffold_proposal') {
+    return ['tool_hint', 'workflow_sequence', 'prompt_rule'].includes(entry?.metadata?.changeType);
+  }
+  if (entry.action === 'harness_refinement_proposal') {
+    return ['workflow_patch', 'tool_hint_patch'].includes(entry?.metadata?.lane)
+      && entry?.metadata?.applyPath === 'existing_scaffold_gate'
+      && entry?.metadata?.launchTraining !== true
+      && entry?.metadata?.launchTraining !== 'true'
+      && entry?.metadata?.adapterPromotion !== true
+      && entry?.metadata?.adapterPromotion !== 'true'
+      && entry?.metadata?.modelRoutingMutation !== true
+      && entry?.metadata?.modelRoutingMutation !== 'true'
+      && entry?.metadata?.gatewayInvocation !== true
+      && entry?.metadata?.gatewayInvocation !== 'true';
+  }
+  return false;
 }
 
 function evolutionCanRollbackScaffoldPromotion(entry) {

@@ -42,7 +42,7 @@ function createHarness() {
   };
   context.globalThis = context;
   vm.createContext(context);
-  vm.runInContext(`${extractEvolutionBlock()}; this.api = { EVOLUTION_CLASS_LABELS, getEvolutionPreviewEntries, loadEvolution, renderEvolutionSurface, updateEvolutionFilter, clearEvolutionFilters, filterEvolutionItems, renderSpineSnapshot, showSpineSnapshotDetail, renderEvolutionCard, showEvolutionDetail, openEvolutionInChat, handleEvolutionAction, buildEvolutionChatPrompt, mergeEvolutionEntriesWithSpineBlockedReceipts, getSpineBlockedOutcomeEntries, collapseEvolutionCandidateCards, showEvolutionCandidateGroupDetail, buildEvolutionCandidateActivityCopy, openEvolutionCandidateGroupInChat, renderEvolutionActionButtons, getEvolutionOutcome, renderEvolutionOutcomeBanner, isEvolutionApprovalCard, evolutionCanApplyCandidate, evolutionCanApproveAndApplyIfStillSafe, evolutionCanReviewCandidate, evolutionCanRollback, evolutionCanApproveHighRiskPacket, evolutionCanRecheckHighRiskApproval, evolutionCanApplyHighRiskClaimMaturation, evolutionCanPromoteScaffoldProposal, evolutionCanRollbackScaffoldPromotion, evolutionCanManageReceipt };`, context);
+  vm.runInContext(`${extractEvolutionBlock()}; this.api = { EVOLUTION_CLASS_LABELS, getEvolutionPreviewEntries, loadEvolution, renderEvolutionSurface, renderHarnessResearchPanel, renderHarnessResearchDigestCard, showHarnessResearchDetail, updateEvolutionFilter, clearEvolutionFilters, filterEvolutionItems, renderSpineSnapshot, showSpineSnapshotDetail, renderEvolutionCard, renderHarnessRefinerProposalDetail, showEvolutionDetail, openEvolutionInChat, handleEvolutionAction, buildEvolutionChatPrompt, mergeEvolutionEntriesWithSpineBlockedReceipts, getSpineBlockedOutcomeEntries, collapseEvolutionCandidateCards, showEvolutionCandidateGroupDetail, buildEvolutionCandidateActivityCopy, openEvolutionCandidateGroupInChat, renderEvolutionActionButtons, getEvolutionOutcome, renderEvolutionOutcomeBanner, isEvolutionApprovalCard, evolutionCanApplyCandidate, evolutionCanApproveAndApplyIfStillSafe, evolutionCanReviewCandidate, evolutionCanRollback, evolutionCanApproveHighRiskPacket, evolutionCanRecheckHighRiskApproval, evolutionCanApplyHighRiskClaimMaturation, evolutionCanPromoteScaffoldProposal, evolutionCanRollbackScaffoldPromotion, evolutionCanManageReceipt };`, context);
   return { context, elements, messages, input };
 }
 
@@ -198,6 +198,77 @@ test('scaffold proposal cards lead with proposed change and expose promotion con
   context.api.openEvolutionInChat(0);
   assert.match(messages.children[0].innerHTML, /Promote scaffold/);
   assert.match(input.value, /Available controls: promote scaffold, keep receipt, disable, strip, mark harmful/);
+});
+
+test('loadEvolution renders harness refiner proposals with scaffold promotion and research digests read-only', async () => {
+  const { context, elements, input } = createHarness();
+  context.isElectron = true;
+  const entry = {
+    id: 'harness-refiner-proposal-tool-loop',
+    class: 'process_ui_friction',
+    title: 'Harness proposal: Tool loop around exec',
+    summary: 'exec was retried with the same input shape.',
+    status: 'preview',
+    risk: 'low',
+    sourceCategory: 'harness-refiner proposal',
+    action: 'harness_refinement_proposal',
+    expectedEffect: 'Reduce recurrence of tool loops.',
+    verification: 'Run fixture.',
+    rollback: 'Dismiss proposal.',
+    metadata: {
+      signature: 'tool_loop',
+      lane: 'workflow_patch',
+      targetSurface: 'tool-loop:exec',
+      proposedChange: 'Pause before retrying the same command without new evidence.',
+      confidence: 0.72,
+      applyPath: 'existing_scaffold_gate',
+      mutationAttempted: 'false',
+      promptInjectionChanged: 'false',
+      cognitiveSnapshot: { latentBucket: 'stable_task_work', rawLatentIncluded: false },
+      evidence: { repeatCount: 3, toolName: 'exec' }
+    }
+  };
+  context.window.cotw = {
+    getEvolution: async () => ({ live: true, entries: [entry] }),
+    getHarnessResearch: async () => ({
+      readOnly: true,
+      digests: [{
+        id: 'digest-1',
+        title: 'Tool loop without new evidence',
+        experimentId: 'scenario-replay-tool-loop',
+        clusterId: 'tool_loop:tool-loop-exec',
+        whyItMatters: 'The agent repeated familiar tool work without progress.',
+        artifactCounts: { windows: 1, proposals: 1, relabelCandidates: 1 },
+        signals: { failureSignatures: ['tool_loop'], cognitiveSummary: { latentBucket: 'stable_task_work', rawLatentIncluded: false } },
+        decisions: { proposalStatus: 'preview', trainingDataStatus: 'candidate' },
+        nextReviewAction: 'Review harness proposal.',
+        redactionPolicy: 'default-local-research-redaction'
+      }]
+    })
+  };
+
+  await context.api.loadEvolution();
+  const htmlOut = elements.get('evolveTab').innerHTML;
+  assert.match(htmlOut, /Harness research digests/);
+  assert.match(htmlOut, /Tool loop without new evidence/);
+  assert.match(htmlOut, /Proposal:/);
+  assert.match(htmlOut, /Lane:/);
+  assert.match(htmlOut, /workflow_patch/);
+  assert.equal(context.api.evolutionCanPromoteScaffoldProposal(entry), true);
+
+  context.api.showEvolutionDetail(0);
+  assert.match(context.detail.body, /High-level proposal/);
+  assert.match(context.detail.body, /Cognitive signal/);
+  assert.match(context.detail.body, /stable_task_work/);
+  assert.match(context.detail.body, /Promote scaffold/);
+
+  context.api.openEvolutionInChat(0);
+  assert.match(input.value, /Available controls: promote scaffold, keep receipt, disable, strip, mark harmful/);
+
+  context.api.showHarnessResearchDetail(0);
+  assert.equal(context.detail.title, 'Tool loop without new evidence');
+  assert.match(context.detail.body, /Research digests are read-only/);
+  assert.match(context.detail.body, /Raw latent included/);
 });
 
 test('applied scaffold promotions expose rollback scaffold control', async () => {

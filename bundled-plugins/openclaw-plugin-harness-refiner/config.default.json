@@ -1,0 +1,38 @@
+{
+  "enabled": true,
+  "recording": {
+    "maxWindows": 200,
+    "maxToolCallsPerWindow": 200,
+    "retentionDays": 30
+  },
+  "analysis": {
+    "patternConfidenceThreshold": 0.55,
+    "maxProposalsPerRun": 10,
+    "minWindowsForNightshift": 1
+  },
+  "detectors": {
+    "minRepeatedToolFailures": 2,
+    "minToolLoopRepeats": 3,
+    "lowSurpriseThreshold": 0.25,
+    "minLowSurpriseToolCalls": 3,
+    "highSurpriseThreshold": 0.7
+  },
+  "cognitive": {
+    "includeRawLatents": false
+  },
+  "training": {
+    "scorerVersion": "harness-refiner-prm-heuristic-v1",
+    "lowScoreThreshold": 0.55
+  },
+  "nightshift": {
+    "priority": 35,
+    "taskType": "harness-refiner"
+  },
+  "research": {
+    "defaultExperimentPrefix": "harness-refiner",
+    "bundleExportEnabled": true
+  },
+  "storage": {
+    "dataDir": null
+  }
+}

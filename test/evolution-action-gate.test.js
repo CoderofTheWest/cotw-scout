@@ -118,10 +118,55 @@ test('low-risk scaffold proposal promotion passes pre-action gate with rollback 
   });
   assert.equal(gate.allowed, true);
   assert.equal(gate.outcomeEvent.action.effect, 'code_evolution_scaffold_promotion_lane');
-  assert.match(gate.outcomeEvent.intent.expectedEffect, /Promote one low-risk Code Evolution scaffold proposal/);
+  assert.match(gate.outcomeEvent.intent.expectedEffect, /Promote one low-risk Code Evolution or Harness Refiner scaffold proposal/);
   assert.match(gate.governorDecision.rollback.plan, /Snapshot evolved scaffold files/);
   assert.deepEqual(validateEvolutionAction({ action: 'apply_scaffold_proposal', entry: { ...proposal, risk: 'high' } }), [
     'scaffold_apply_requires_low_risk'
+  ]);
+});
+
+test('low-risk Harness Refiner workflow/tool-hint proposals can use scaffold promotion gate', () => {
+  const proposal = {
+    id: 'harness-refiner-proposal-tool-loop',
+    action: 'harness_refinement_proposal',
+    status: 'preview',
+    risk: 'low',
+    class: 'process_ui_friction',
+    sourceCategory: 'harness-refiner proposal',
+    metadata: {
+      lane: 'workflow_patch',
+      targetSurface: 'tool-loop:exec',
+      applyPath: 'existing_scaffold_gate',
+      mutationAttempted: 'false',
+      promptInjectionChanged: 'false',
+      launchTraining: false,
+      adapterPromotion: false,
+      modelRoutingMutation: false,
+      gatewayInvocation: false
+    }
+  };
+  const gate = createEvolutionActionGateReceipt({
+    id: proposal.id,
+    action: 'apply_scaffold_proposal',
+    entry: proposal,
+    now: '2026-05-22T18:00:00.000Z'
+  });
+  assert.equal(gate.allowed, true);
+  assert.equal(gate.outcomeEvent.action.effect, 'code_evolution_scaffold_promotion_lane');
+  assert.match(gate.outcomeEvent.intent.expectedEffect, /Harness Refiner scaffold proposal/);
+  assert.deepEqual(validateEvolutionAction({
+    action: 'apply_scaffold_proposal',
+    entry: { ...proposal, metadata: { ...proposal.metadata, lane: 'mode_patch', applyPath: 'review_only' } }
+  }), [
+    'scaffold_apply_requires_supported_change_type',
+    'scaffold_apply_requires_harness_workflow_or_tool_hint_lane',
+    'scaffold_apply_requires_existing_scaffold_gate'
+  ]);
+  assert.deepEqual(validateEvolutionAction({
+    action: 'apply_scaffold_proposal',
+    entry: { ...proposal, metadata: { ...proposal.metadata, gatewayInvocation: 'true' } }
+  }), [
+    'scaffold_apply_refuses_harness_protected_mutation_flags'
   ]);
 });
 
