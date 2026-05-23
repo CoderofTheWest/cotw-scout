@@ -248,6 +248,7 @@ function main() {
   applyToolResultFidelityPatch();
   applyContextLoopRecoveryPatch();
   applyCompactionSessionFencePatch();
+  applyVisibleReplyCompactionFinalizationPatch();
   applyOpenAiHttpToolEventPatch();
   applyToolResultRangeToolPatch();
 }
@@ -796,6 +797,47 @@ function applyCompactionSessionFencePatch() {
       throw new Error('OpenClaw selection shape changed: compaction session fence anchor not found');
     }
     source = source.replace(oldBlock, newBlock);
+    changed = true;
+  }
+
+  if (changed) {
+    fs.writeFileSync(target, source, 'utf8');
+    console.log(`Applied OpenClaw local patch: ${path.relative(root, target)}`);
+  } else {
+    console.log(`OpenClaw local patch already applied: ${path.relative(root, target)}`);
+  }
+}
+
+function applyVisibleReplyCompactionFinalizationPatch() {
+  const target = findSelectionFile();
+  let source = fs.readFileSync(target, 'utf8');
+  let changed = false;
+
+  if (!source.includes('function resolveVisibleReplyCompactionFinalizationWaitMs(config)')) {
+    const anchor = 'async function waitForCompactionRetryWithAggregateTimeout(params) {';
+    const helper = `function resolveVisibleReplyCompactionFinalizationWaitMs(config) {
+\tconst raw = config?.agents?.defaults?.compaction?.visibleReplyFinalizationWaitMs
+\t\t?? config?.runtime?.visibleReplyCompactionFinalizationWaitMs
+\t\t?? process.env.OPENCLAW_VISIBLE_REPLY_COMPACTION_WAIT_MS;
+\tconst parsed = Number(raw);
+\tif (Number.isFinite(parsed)) return Math.max(250, Math.min(6e4, Math.floor(parsed)));
+\treturn 2e3;
+}
+`;
+    if (!source.includes(anchor)) {
+      throw new Error('OpenClaw selection shape changed: compaction finalization helper anchor not found');
+    }
+    source = source.replace(anchor, helper + anchor);
+    changed = true;
+  }
+
+  const oldTimeout = '\t\t\t\tconst COMPACTION_RETRY_AGGREGATE_TIMEOUT_MS = 6e4;';
+  const newTimeout = '\t\t\t\tconst visibleReplyBeforeCompactionWait = getVisibleBlockReplyCount() > 0;\n\t\t\t\tconst COMPACTION_RETRY_AGGREGATE_TIMEOUT_MS = visibleReplyBeforeCompactionWait ? resolveVisibleReplyCompactionFinalizationWaitMs(params.config) : 6e4;';
+  if (!source.includes(newTimeout)) {
+    if (!source.includes(oldTimeout)) {
+      throw new Error('OpenClaw selection shape changed: compaction retry aggregate timeout anchor not found');
+    }
+    source = source.replace(oldTimeout, newTimeout);
     changed = true;
   }
 

@@ -196,6 +196,22 @@ test('compaction retry finalization reconciles only expected self-compaction tra
   assert.match(source, /compactionOccurredThisAttempt = compactionCountAfterPrompt > 0;/);
 });
 
+test('visible streamed replies do not wait the full compaction retry window before finalizing', () => {
+  const patchSource = fs.readFileSync(patchScript, 'utf8');
+  assert.match(patchSource, /function applyVisibleReplyCompactionFinalizationPatch\(\)/);
+  assert.match(patchSource, /visibleReplyFinalizationWaitMs/);
+  assert.match(patchSource, /OPENCLAW_VISIBLE_REPLY_COMPACTION_WAIT_MS/);
+
+  const source = fs.readFileSync(findSelectionFile(), 'utf8');
+  assert.match(source, /function resolveVisibleReplyCompactionFinalizationWaitMs\(config\)/);
+  assert.match(source, /return 2e3;/);
+  assert.match(source, /const visibleReplyBeforeCompactionWait = getVisibleBlockReplyCount\(\) > 0;/);
+  assert.match(
+    source,
+    /const COMPACTION_RETRY_AGGREGATE_TIMEOUT_MS = visibleReplyBeforeCompactionWait \? resolveVisibleReplyCompactionFinalizationWaitMs\(params\.config\) : 6e4;/
+  );
+});
+
 
 test('recovery event wiring has no duplicate compact-only or exhausted emissions', () => {
   const source = fs.readFileSync(findSelectionFile(), 'utf8');
