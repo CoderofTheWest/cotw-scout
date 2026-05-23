@@ -1,6 +1,6 @@
 {
   "name": "cotw-scout",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "productName": "COTW Scout",
   "description": "Code of the West Scout — Local relational AI agent",

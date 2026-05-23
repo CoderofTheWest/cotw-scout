@@ -319,13 +319,14 @@
   <p class="section-sub">COTW is careful about the word evolution. The model weights do not change, and the agent does not get blanket authority over its own scaffold. The new layer is best understood as a diagnostics and research platform first.</p>
   <div class="receipt-box">
     <p><strong>What exists now:</strong> Code Evolution records Code mode sessions, tool calls, outcomes, scaffold version, and satisfaction/correction signals. Harness Refiner adds a read-only research layer on top of that evidence.</p>
-    <p><strong>What Harness Refiner does:</strong> it turns trajectory windows into failure signatures, PRM-style process scores, relabel candidates, research digests, redacted research bundles, and <code>harness_refinement_proposal</code> receipts.</p>
+    <p><strong>What Harness Refiner accrues:</strong> trajectory windows, failure signatures, PRM-style process scores, relabel candidates, teacher-relabel receipts, research digests, scenario replay results, training-health receipts, and redacted research bundles for future training runs.</p>
+    <p><strong>Why that matters:</strong> the harness is not just logging chat history. It is collecting the kind of structured evidence a future fine-tuning, adapter, or evaluation pass would need: what failed, what context produced it, how the process scored, what a teacher repair would look like, and which artifacts were excluded.</p>
     <p><strong>Why proposals appear at all:</strong> some diagnostics point at repeated workflow friction. Only bounded low-risk workflow and tool-hint candidates can route through the existing Evolve scaffold promotion gate, where promotion writes before/after hashes, a rollback path, and an outcome receipt.</p>
     <p><strong>What it does not do by itself:</strong> mutate protected identity, change runtime configuration, launch training, promote adapters, change model routing, grant tool authority, or inject new prompt rules without a separate operator-owned gate.</p>
   </div>
 
   <h2>Harness Refiner as diagnostics</h2>
-  <p class="section-sub">The new refiner is easiest to understand as the bridge between live agent work and future training or scaffold improvements. It preserves evidence first, then asks what kind of improvement is actually allowed.</p>
+  <p class="section-sub">The new refiner is easiest to understand as the bridge between live agent work and future training or scaffold improvements. It preserves evidence first, structures candidate training data second, then asks what kind of improvement is actually allowed.</p>
   <div class="grid">
     <div class="card">
       <span class="badge">Failure signatures</span>
@@ -338,14 +339,14 @@
       <p>PRM-style diagnostics track format compliance, action correctness, grounding, reasoning quality, task progress, correction uptake, no-confabulation, handoff quality, mode containment, and user-burden reduction.</p>
     </div>
     <div class="card">
-      <span class="badge">Research receipts</span>
-      <h3>It keeps the training question separate.</h3>
-      <p>Low-scoring windows can become relabel candidates and teacher-relabel receipts, but every artifact explicitly records that it does not authorize training launch, adapter promotion, or model routing changes.</p>
+      <span class="badge">Training runway</span>
+      <h3>It accrues future-training data.</h3>
+      <p>Low-scoring windows can become relabel candidates and teacher-relabel receipts. Each packet carries source handles, score axes, harness/model hashes, inclusion status, and explicit non-authorization for training launch.</p>
     </div>
     <div class="card">
       <span class="badge">Exportable evidence</span>
       <h3>It can share the trail without leaking the whole camp.</h3>
-      <p>Research bundle export writes redacted JSONL artifacts and a manifest hash so the system can be reviewed, replayed, or used for later experiments without dumping raw private state.</p>
+      <p>Research bundle export writes redacted JSONL artifacts and a manifest hash so the system can be reviewed, replayed, evaluated, or prepared for later training experiments without dumping raw private state.</p>
     </div>
   </div>
 
