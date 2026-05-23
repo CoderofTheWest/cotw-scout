@@ -717,7 +717,7 @@
 
   .build-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 14px;
   }
 
@@ -1119,6 +1119,7 @@
         <a href="memory-system-map.html">Memory map</a>
         <a href="memory-architecture.html">Architecture</a>
         <a href="builder-harness.html">Builder harness</a>
+        <a href="builder-harness.html#harness-refiner">Research diagnostics</a>
       </div>
     </details>
     <details class="nav-menu">
@@ -1323,7 +1324,7 @@
         <h2>It is also a build harness.</h2>
       </div>
       <p>
-        COTW is not only memory for conversation. In Code mode, the same continuity system turns ambiguous ideas into specs, specs into bounded work, research into reproducible sprints, and repeated failure patterns into reviewable scaffold proposals. A novice gets structure without needing to know how to manage an agent. An experienced builder gets receipts, handoffs, tests, and a loop that can improve the harness without silently rewriting it.
+        COTW is not only memory for conversation. In Code mode, the same continuity system turns ambiguous ideas into specs, specs into bounded work, research into reproducible sprints, and repeated failure patterns into diagnostics. A novice gets structure without needing to know how to manage an agent. An experienced builder gets receipts, handoffs, tests, and a research platform that can surface improvement proposals without silently rewriting the harness.
       </p>
     </div>
 
@@ -1347,9 +1348,15 @@
       </div>
 
       <div class="build-card">
-        <small>Evolution</small>
-        <h3>Proposal-Only Self-Improvement</h3>
-        <p>Code Evolution records Code mode sessions and can emit scaffold proposal receipts for repeated tool failures, long loops, or correction patterns. It proposes; the operator decides.</p>
+        <small>Governance</small>
+        <h3>Proposal-Only Refinement</h3>
+        <p>Code Evolution records Code mode sessions and can hold scaffold proposal receipts for repeated tool failures, long loops, or correction patterns. It proposes; the operator decides.</p>
+      </div>
+
+      <div class="build-card">
+        <small>Diagnostics</small>
+        <h3>Harness Refiner</h3>
+        <p>Trajectory windows become failure signatures, PRM-style process scores, relabel candidates, research digests, and redacted bundles for future training runs.</p>
       </div>
     </div>
 
@@ -1389,6 +1396,11 @@
       <h3>Build Harness</h3>
       <p>PRD Builder, deep research, direct research sprints, Code mode session receipts, infinite project threads, and proposal-only scaffold evolution.</p>
       <span class="tech-link">Open builder harness</span>
+    </a>
+    <a class="tech-layer" href="builder-harness.html#harness-refiner">
+      <h3>Research Diagnostics</h3>
+      <p>Read-only trajectory analysis, failure detectors, process scoring, relabel packets, research digests, redacted bundles for future training runs, and protected proposal lanes.</p>
+      <span class="tech-link">Open diagnostics</span>
     </a>
   </div>
 
@@ -1475,7 +1487,7 @@ npm install</code></pre>
     <a href="builder-harness.html" class="doc-card">
       <span class="doc-card-badge badge-html">Builder</span>
       <div class="doc-card-title">Coding Harness &amp; Research Loop</div>
-      <div class="doc-card-desc">How PRDs, deep research, direct research sprints, infinite threads, receipts, and proposal-only scaffold evolution turn the agent into a recursive building system.</div>
+      <div class="doc-card-desc">How PRDs, deep research, direct research sprints, infinite threads, receipts, research diagnostics, and proposal-only refinement turn the agent into a recursive building system.</div>
     </a>
 
     <a href="memory-system-map.html" class="doc-card">

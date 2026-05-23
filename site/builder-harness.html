@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Builder Harness — Code of the West</title>
-<meta name="description" content="How COTW turns GPT 5.5 into a receipt-driven building, research, and proposal-only self-improvement harness.">
+<meta name="description" content="How COTW turns GPT 5.5 into a receipt-driven building, research diagnostics, and proposal-only refinement harness.">
 <link rel="icon" href="images/cotw-logo.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Fira+Code:wght@400;500&display=swap');
@@ -261,15 +261,16 @@
     <a href="index.html">Overview</a>
     <a href="memory-system-map.html">Memory Map</a>
     <a href="memory-architecture.html">Architecture</a>
+    <a href="#harness-refiner">Research Diagnostics</a>
     <a href="https://github.com/CoderofTheWest/cotw-scout">GitHub</a>
   </div>
 </nav>
 
 <main>
-  <div class="eyebrow">Coding, research, receipts, evolution</div>
+  <div class="eyebrow">Coding, research, receipts, diagnostics</div>
   <h1>The part that turns GPT 5.5 into a reliable builder.</h1>
   <p class="lead">
-    COTW Companion is not just a memory layer for conversation. Code mode uses the same continuity substrate to keep a builder agent oriented across specs, files, experiments, restarts, and correction loops. It gives beginners a guided path and gives experienced builders a disciplined workbench.
+    COTW Scout is not just a memory layer for conversation. Code mode uses the same continuity substrate to keep a builder agent oriented across specs, files, experiments, restarts, and correction loops. It gives beginners a guided path and gives experienced builders a disciplined workbench.
   </p>
 
   <div class="signal">
@@ -281,7 +282,7 @@
     <div class="loop-step"><small>2 / Work</small><strong>Threaded execution</strong><span>Code mode keeps the project in an infinite thread with handoffs, tool outputs, and current-state context.</span></div>
     <div class="loop-step"><small>3 / Research</small><strong>Evidence loops</strong><span>Deep research and direct sprints force hypothesis, experiment, result, interpretation, and next move.</span></div>
     <div class="loop-step"><small>4 / Verify</small><strong>Receipts and tests</strong><span>Claims route through files, diffs, screenshots, logs, tests, or explicit missing gates.</span></div>
-    <div class="loop-step"><small>5 / Improve</small><strong>Proposal-only evolution</strong><span>Repeated friction becomes scaffold proposal receipts. The agent can suggest changes, but not silently mutate itself.</span></div>
+    <div class="loop-step"><small>5 / Diagnose</small><strong>Research diagnostics</strong><span>Repeated friction becomes failure signatures, process scores, relabel candidates, and reviewable proposal receipts.</span></div>
   </div>
 
   <h2>Why it helps novices</h2>
@@ -314,12 +315,39 @@
     </div>
   </div>
 
-  <h2>Light recursive self-improvement</h2>
-  <p class="section-sub">COTW is careful about the word evolution. The model weights do not change, and the agent does not get blanket authority over its own scaffold.</p>
+  <h2 id="harness-refiner">Research platform and diagnostics</h2>
+  <p class="section-sub">COTW is careful about the word evolution. The model weights do not change, and the agent does not get blanket authority over its own scaffold. The new layer is best understood as a diagnostics and research platform first.</p>
   <div class="receipt-box">
-    <p><strong>What exists now:</strong> Code Evolution records Code mode sessions, tool calls, outcomes, scaffold version, and satisfaction/correction signals.</p>
-    <p><strong>What the proposal loop does:</strong> it can analyze repeated tool failures, long tool-call loops, and correction patterns, then write <code>scaffold_proposal</code> receipts into the evolution ledger.</p>
-    <p><strong>What it does not do by itself:</strong> mutate protected identity, change runtime configuration, grant tool authority, or inject new prompt rules without a separate operator-owned promotion lane.</p>
+    <p><strong>What exists now:</strong> Code Evolution records Code mode sessions, tool calls, outcomes, scaffold version, and satisfaction/correction signals. Harness Refiner adds a read-only research layer on top of that evidence.</p>
+    <p><strong>What Harness Refiner accrues:</strong> trajectory windows, failure signatures, PRM-style process scores, relabel candidates, teacher-relabel receipts, research digests, scenario replay results, training-health receipts, and redacted research bundles for future training runs.</p>
+    <p><strong>Why that matters:</strong> the harness is not just logging chat history. It is collecting the kind of structured evidence a future fine-tuning, adapter, or evaluation pass would need: what failed, what context produced it, how the process scored, what a teacher repair would look like, and which artifacts were excluded.</p>
+    <p><strong>Why proposals appear at all:</strong> some diagnostics point at repeated workflow friction. Only bounded low-risk workflow and tool-hint candidates can route through the existing Evolve scaffold promotion gate, where promotion writes before/after hashes, a rollback path, and an outcome receipt.</p>
+    <p><strong>What it does not do by itself:</strong> mutate protected identity, change runtime configuration, launch training, promote adapters, change model routing, grant tool authority, or inject new prompt rules without a separate operator-owned gate.</p>
+  </div>
+
+  <h2>Harness Refiner as diagnostics</h2>
+  <p class="section-sub">The new refiner is easiest to understand as the bridge between live agent work and future training or scaffold improvements. It preserves evidence first, structures candidate training data second, then asks what kind of improvement is actually allowed.</p>
+  <div class="grid">
+    <div class="card">
+      <span class="badge">Failure signatures</span>
+      <h3>It names recurring friction.</h3>
+      <p>Detectors look for repeated tool failures, tool loops, correction-not-integrated patterns, mode bleed, receipt mismatch, ungrounded recommendations, low-surprise drift, and cognitive-state anomalies.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Process scoring</span>
+      <h3>It scores the work, not the vibe.</h3>
+      <p>PRM-style diagnostics track format compliance, action correctness, grounding, reasoning quality, task progress, correction uptake, no-confabulation, handoff quality, mode containment, and user-burden reduction.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Training runway</span>
+      <h3>It accrues future-training data.</h3>
+      <p>Low-scoring windows can become relabel candidates and teacher-relabel receipts. Each packet carries source handles, score axes, harness/model hashes, inclusion status, and explicit non-authorization for training launch.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Exportable evidence</span>
+      <h3>It can share the trail without leaking the whole camp.</h3>
+      <p>Research bundle export writes redacted JSONL artifacts and a manifest hash so the system can be reviewed, replayed, evaluated, or prepared for later training experiments without dumping raw private state.</p>
+    </div>
   </div>
 
   <h2>Free and hardened</h2>
